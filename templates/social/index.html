@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">社交中心</h1>
+            <p class="lead">从匿名对话开始，逐步揭示身份，拓展校园社交圈。</p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            <form action="{{ url_for('social.start_anonymous_chat') }}" method="post">
+                <button type="submit" class="btn btn-info text-white">
+                    <i class="fas fa-random me-1"></i>开始匿名对话
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 社交功能卡片 -->
+    <div class="row mb-5">
+        <!-- 匿名对话卡片 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-info text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                        <i class="fas fa-comment-dots fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">匿名对话</h3>
+                    <p class="card-text">通过匿名对话与校园里的其他人沟通，系统会随机匹配一位用户与你交流。</p>
+                    <p class="card-text text-muted">每次对话都从匿名开始，随着交流的深入，逐步揭示双方的身份和兴趣。</p>
+                    <form action="{{ url_for('social.start_anonymous_chat') }}" method="post" class="mt-3">
+                        <button type="submit" class="btn btn-outline-info">开始匿名聊天</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 我的好友卡片 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                        <i class="fas fa-user-friends fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">我的好友</h3>
+                    <p class="card-text">查看和管理你的好友列表，与你认识的校园同学保持联系。</p>
+                    <p class="card-text text-muted">从匿名聊天中结识的新朋友会添加到你的好友列表，让社交圈逐步扩大。</p>
+                    <a href="{{ url_for('social.friends_list') }}" class="btn btn-outline-success mt-3">查看好友列表</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 消息中心卡片 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-primary text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </div>
+                    <h3 class="card-title">消息中心</h3>
+                    <p class="card-text">查看你收到的所有消息，包括好友请求、系统通知等。</p>
+                    <p class="card-text text-muted">保持联系的重要方式，不错过任何重要的社交互动。</p>
+                    <a href="{{ url_for('social.messages') }}" class="btn btn-outline-primary mt-3">查看消息</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 活跃的匿名对话 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="m-0"><i class="fas fa-comments me-2"></i>我的匿名对话</h4>
+                </div>
+                <div class="card-body">
+                    {% if anonymous_chats %}
+                        <div class="list-group">
+                            {% for chat in anonymous_chats %}
+                                <a href="{{ url_for('social.anonymous_chat', chat_id=chat.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            {% if chat.status == 'active' %}
+                                                匿名对话 #{{ chat.id }}
+                                                <span class="badge bg-success ms-2">进行中</span>
+                                            {% elif chat.status == 'revealed' %}
+                                                已揭示身份的对话
+                                                <span class="badge bg-info ms-2">已揭示</span>
+                                            {% else %}
+                                                已结束的对话
+                                                <span class="badge bg-secondary ms-2">已结束</span>
+                                            {% endif %}
+                                        </h5>
+                                        <p class="mb-1">
+                                            亲密度: 
+                                            {% for i in range(1, 6) %}
+                                                {% if i <= chat.intimacy_level %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">上次活动: {{ chat.last_activity.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        <div>
+                                            <span class="btn btn-sm btn-outline-info">继续对话</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                            <h5>暂无匿名对话</h5>
+                            <p class="text-muted">你还没有开始任何匿名对话，点击"开始匿名对话"按钮，系统会随机匹配一位用户与你交流。</p>
+                            <form action="{{ url_for('social.start_anonymous_chat') }}" method="post" class="mt-3">
+                                <button type="submit" class="btn btn-info text-white">开始匿名对话</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 好友列表预览 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="m-0"><i class="fas fa-user-friends me-2"></i>我的好友</h4>
+                </div>
+                <div class="card-body">
+                    {% if friends %}
+                        <div class="row">
+                            {% for friend in friends %}
+                                <div class="col-md-3 mb-3 text-center">
+                                    <div class="friend-card p-3 border rounded">
+                                        {% if friend.avatar %}
+                                            <img src="{{ friend.avatar }}" alt="{{ friend.username }}" class="rounded-circle mb-2" width="64" height="64">
+                                        {% else %}
+                                            <div class="avatar-placeholder rounded-circle mb-2 mx-auto bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                                <i class="fas fa-user fa-2x text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                        <h5 class="mb-1">{{ friend.username }}</h5>
+                                        {% if friend.major %}
+                                            <p class="text-muted small mb-2">{{ friend.major }} {{ friend.grade }}</p>
+                                        {% endif %}
+                                        <a href="{{ url_for('social.view_profile', user_id=friend.id) }}" class="btn btn-sm btn-outline-success w-100">查看资料</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if friends|length > 8 %}
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('social.friends_list') }}" class="btn btn-outline-success">查看全部好友</a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                            <h5>暂无好友</h5>
+                            <p class="text-muted">你还没有添加任何好友。通过匿名对话结识新朋友，然后将他们添加为好友。</p>
+                            <form action="{{ url_for('social.start_anonymous_chat') }}" method="post" class="mt-3">
+                                <button type="submit" class="btn btn-success">开始匿名对话，认识新朋友</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

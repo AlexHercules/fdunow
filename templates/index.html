@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded-3 mb-4">
+    <div class="container">
+        <h1 class="display-4">欢迎来到校园众创平台</h1>
+        <p class="lead">一个集众筹、组队和社交于一体的校园创新平台。在这里，你可以展示创意、寻找伙伴、拓展社交圈。</p>
+        <hr class="my-4">
+        <p>无论是有创意需要支持，还是想找到志同道合的伙伴，或是希望拓展社交圈，我们都能满足你的需求。</p>
+        <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-primary btn-lg" href="{{ url_for('crowdfunding.index') }}" role="button">
+                <i class="fas fa-hand-holding-usd me-1"></i>浏览众筹项目
+            </a>
+            <a class="btn btn-success btn-lg" href="{{ url_for('team.index') }}" role="button">
+                <i class="fas fa-users me-1"></i>查看组队信息
+            </a>
+            <a class="btn btn-info btn-lg text-white" href="{{ url_for('social.index') }}" role="button">
+                <i class="fas fa-comments me-1"></i>探索社交圈
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 三大功能块介绍 -->
+<div class="row mb-5">
+    <div class="col-md-4 mb-4 mb-md-0">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-primary text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                    <i class="fas fa-hand-holding-usd fa-2x"></i>
+                </div>
+                <h3 class="card-title">众筹模块</h3>
+                <p class="card-text">发布你的创意项目，获得点赞验证和资金支持，一键组建项目团队。</p>
+                <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-outline-primary mt-2">了解更多</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4 mb-md-0">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-success text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <h3 class="card-title">组队模块</h3>
+                <p class="card-text">根据学习、比赛、创业等不同场景，轻松发起或加入团队，找到志同道合的伙伴。</p>
+                <a href="{{ url_for('team.index') }}" class="btn btn-outline-success mt-2">了解更多</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-info text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
+                    <i class="fas fa-comments fa-2x"></i>
+                </div>
+                <h3 class="card-title">社交模块</h3>
+                <p class="card-text">从匿名对话开始，通过引导式互动逐步揭示身份，拓展你的校园社交圈。</p>
+                <a href="{{ url_for('social.index') }}" class="btn btn-outline-info mt-2">了解更多</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 数据统计 -->
+<div class="bg-light p-5 rounded-3 mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">平台数据</h2>
+        <div class="row text-center">
+            <div class="col-md-3 mb-3 mb-md-0">
+                <h3 class="display-4 fw-bold text-primary">{{ '50+' }}</h3>
+                <p class="lead">众筹项目</p>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <h3 class="display-4 fw-bold text-success">{{ '100+' }}</h3>
+                <p class="lead">组队需求</p>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <h3 class="display-4 fw-bold text-info">{{ '1000+' }}</h3>
+                <p class="lead">匿名对话</p>
+            </div>
+            <div class="col-md-3">
+                <h3 class="display-4 fw-bold text-danger">{{ '500+' }}</h3>
+                <p class="lead">活跃用户</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 热门内容 -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-4 mb-md-0">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="m-0"><i class="fas fa-fire me-2"></i>热门众筹项目</h4>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">校园快递自提柜改进计划</h5>
+                            <small class="text-muted">3天前</small>
+                        </div>
+                        <p class="mb-1">解决校内快递自提效率低下问题，提供智能化解决方案。</p>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">校园文创产品设计大赛</h5>
+                            <small class="text-muted">5天前</small>
+                        </div>
+                        <p class="mb-1">征集具有校园特色的文创设计，优胜作品将获得生产机会。</p>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">校园共享单车管理系统</h5>
+                            <small class="text-muted">1周前</small>
+                        </div>
+                        <p class="mb-1">开发校园专属共享单车管理系统，解决乱停乱放问题。</p>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-sm btn-outline-primary">查看更多项目</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="m-0"><i class="fas fa-star me-2"></i>最新组队需求</h4>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">人工智能创新大赛</h5>
+                            <small><span class="badge bg-success">比赛</span></small>
+                        </div>
+                        <p class="mb-1">招募算法、前端和产品设计人员，共同参与全国大学生AI创新大赛。</p>
+                        <small class="text-muted">已有3人加入，还需2人</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">高等数学辅导小组</h5>
+                            <small><span class="badge bg-info">学习</span></small>
+                        </div>
+                        <p class="mb-1">寻找数学好的同学组建高数学习小组，互相督促，共同提高。</p>
+                        <small class="text-muted">已有2人加入，还需3人</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">校园APP创业团队</h5>
+                            <small><span class="badge bg-warning text-dark">创业</span></small>
+                        </div>
+                        <p class="mb-1">招募产品经理、UI设计师和后端开发，打造校园生活服务APP。</p>
+                        <small class="text-muted">已有2人加入，还需3人</small>
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('team.index') }}" class="btn btn-sm btn-outline-success">查看更多组队</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 首页特效脚本可以放在这里
+    $(document).ready(function() {
+        // 平滑滚动效果
+        $('a[href^="#"]').on('click', function(event) {
+            var target = $(this.getAttribute('href'));
+            if (target.length) {
+                event.preventDefault();
+                $('html, body').stop().animate({
+                    scrollTop: target.offset().top
+                }, 1000);
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">组队中心</h1>
+            <p class="lead">找到志同道合的伙伴，组建你的校园梦之队。</p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            <a href="{{ url_for('team.create_team') }}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-1"></i>发起组队
+            </a>
+        </div>
+    </div>
+
+    <!-- 筛选器和排序 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('team.index') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="type" class="form-label">团队类型</label>
+                    <select class="form-select" id="type" name="type">
+                        <option value="all" {% if current_type == 'all' %}selected{% endif %}>所有类型</option>
+                        {% for team_type in team_types %}
+                        <option value="{{ team_type.name }}" {% if current_type == team_type.name %}selected{% endif %}>{{ team_type.value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="status" class="form-label">团队状态</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="all" {% if current_status == 'all' %}selected{% endif %}>所有状态</option>
+                        <option value="recruiting" {% if current_status == 'recruiting' %}selected{% endif %}>招募中</option>
+                        <option value="full" {% if current_status == 'full' %}selected{% endif %}>已满员</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-filter me-1"></i>应用筛选
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 组队类型导航 -->
+    <div class="team-categories mb-4">
+        <div class="d-flex flex-wrap justify-content-center">
+            <a href="{{ url_for('team.index', type='all') }}" class="btn btn-outline-secondary m-1 {{ 'active' if current_type == 'all' else '' }}">
+                全部
+            </a>
+            {% for team_type in team_types %}
+            <a href="{{ url_for('team.index', type=team_type.name) }}" class="btn btn-outline-secondary m-1 {{ 'active' if current_type == team_type.name else '' }}">
+                {{ team_type.value }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 团队列表 -->
+    <div class="row">
+        {% if teams %}
+            {% for team in teams %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-{{ 'success' if team.status == 'recruiting' else 'secondary' }} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="m-0">{{ team.name }}</h5>
+                                <span class="badge bg-light text-dark">{{ team.team_type.value }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ team.description[:150] }}{% if team.description|length > 150 %}...{% endif %}</p>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">所需技能：</small>
+                                {% if team.required_skills %}
+                                    {% for skill in team.required_skills.split(',') %}
+                                        <span class="badge bg-light text-dark me-1">{{ skill.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">无特定要求</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i>{{ team.members.count() }}/{{ team.max_members }} 人
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ team.created_at.strftime('%Y-%m-%d') }}
+                                </small>
+                            </div>
+                            
+                            <!-- 团队状态标签 -->
+                            <div class="mt-3">
+                                {% if team.status == 'recruiting' %}
+                                    <span class="badge bg-success">招募中</span>
+                                {% elif team.status == 'full' %}
+                                    <span class="badge bg-warning text-dark">已满员</span>
+                                {% elif team.status == 'closed' %}
+                                    <span class="badge bg-secondary">已关闭</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('team.team_detail', team_id=team.id) }}" class="btn btn-sm btn-outline-success">查看详情</a>
+                                {% if team.status == 'recruiting' %}
+                                    <form action="{{ url_for('team.join_team', team_id=team.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-sign-in-alt me-1"></i>申请加入
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="fas fa-info-circle fa-3x mb-3"></i>
+                    <h4>暂无团队</h4>
+                    <p>当前没有符合条件的团队，您可以尝试调整筛选条件或者创建一个新团队。</p>
+                    <a href="{{ url_for('team.create_team') }}" class="btn btn-success mt-2">创建新团队</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 搜索团队 -->
+    <div class="card mt-4 mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">搜索团队</h5>
+        </div>
+        <div class="card-body">
+            <div class="input-group">
+                <input type="text" id="search-input" class="form-control" placeholder="输入团队名称、技能或描述关键词">
+                <button id="search-btn" class="btn btn-success" type="button">
+                    <i class="fas fa-search me-1"></i>搜索
+                </button>
+            </div>
+            <div id="search-results" class="mt-3"></div>
+        </div>
+    </div>
+
+    <!-- 分页 -->
+    <nav aria-label="页面导航" class="my-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">下一页</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 自动提交表单当选择改变时
+        $('#type, #status').change(function() {
+            $(this).closest('form').submit();
+        });
+        
+        // 搜索功能
+        $('#search-btn').click(function() {
+            const query = $('#search-input').val().trim();
+            const type = $('#type').val();
+            
+            if (query) {
+                $.ajax({
+                    url: "{{ url_for('team.search_teams') }}",
+                    data: { q: query, type: type },
+                    success: function(data) {
+                        let html = '';
+                        
+                        if (data.length > 0) {
+                            html += '<div class="list-group">';
+                            data.forEach(function(team) {
+                                html += `
+                                    <a href="/team/${team.id}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">${team.name}</h5>
+                                            <small><span class="badge bg-light text-dark">${team.team_type}</span></small>
+                                        </div>
+                                        <p class="mb-1">${team.description}</p>
+                                        <small class="text-muted">成员: ${team.member_count}/${team.max_members} | 状态: ${team.status === 'recruiting' ? '招募中' : '已满员/已关闭'}</small>
+                                    </a>
+                                `;
+                            });
+                            html += '</div>';
+                        } else {
+                            html = '<div class="alert alert-warning">没有找到匹配的团队</div>';
+                        }
+                        
+                        $('#search-results').html(html);
+                    }
+                });
+            } else {
+                $('#search-results').html('<div class="alert alert-warning">请输入搜索关键词</div>');
+            }
+        });
+        
+        // 回车键搜索
+        $('#search-input').keypress(function(e) {
+            if (e.which === 13) {
+                $('#search-btn').click();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %} 
