@@ -1,37 +1,65 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash
+import logging
+from logging.handlers import RotatingFileHandler
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from models import db, User
+from config import config
 
-# 创建Flask应用实例
-app = Flask(__name__)
+# 创建应用工厂函数
+def create_app(config_name='default'):
+    """应用工厂函数，根据配置名创建Flask应用实例"""
+    # 创建Flask应用实例
+    app = Flask(__name__)
+    
+    # 加载配置
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+    
+    # 确保日志目录存在
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    
+    # 初始化数据库
+    db.init_app(app)
+    
+    # 初始化数据库迁移
+    migrate = Migrate(app, db)
+    
+    # 初始化登录管理器
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    # 首页路由
+    @app.route('/')
+    def index():
+        return render_template('index.html', title='校园众创平台')
+    
+    # 注册蓝图
+    register_blueprints(app)
+    
+    # 配置错误处理
+    configure_error_handlers(app)
+    
+    # 配置日志（非调试模式）
+    if not app.debug and not app.testing:
+        configure_logging(app)
+    
+    # 创建数据库表
+    @app.before_first_request
+    def create_tables():
+        db.create_all()
+    
+    return app
 
-# 配置应用
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-key-for-testing'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# 初始化数据库
-db.init_app(app)
-migrate = Migrate(app, db)
-
-# 初始化登录管理器
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-# 首页路由
-@app.route('/')
-def index():
-    return render_template('index.html', title='校园众创平台')
-
-# 导入并注册蓝图
 def register_blueprints(app):
+    """注册所有蓝图"""
     from crowdfunding import crowdfunding_bp
     from team import team_bp
     from social import social_bp
@@ -42,23 +70,50 @@ def register_blueprints(app):
     app.register_blueprint(social_bp)
     app.register_blueprint(payment_bp)
 
-# 创建数据库表
-@app.before_first_request
-def create_tables():
-    db.create_all()
+def configure_error_handlers(app):
+    """配置错误处理器"""
+    @app.errorhandler(404)
+    def page_not_found(e):
+        app.logger.warning(f'404错误: {request.path}')
+        return render_template('404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        app.logger.error(f'500错误: {str(e)}')
+        return render_template('500.html'), 500
+    
+    @app.errorhandler(403)
+    def forbidden(e):
+        app.logger.warning(f'403错误: {request.path}')
+        return render_template('403.html'), 403
+    
+    @app.errorhandler(400)
+    def bad_request(e):
+        app.logger.warning(f'400错误: {str(e)}')
+        return render_template('400.html'), 400
 
-# 注册错误处理器
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
+def configure_logging(app):
+    """配置应用日志"""
+    # 设置日志级别
+    app.logger.setLevel(logging.INFO)
+    
+    # 创建日志处理器
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10485760, backupCount=5)
+    file_handler.setLevel(logging.INFO)
+    
+    # 设置日志格式
+    formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    )
+    file_handler.setFormatter(formatter)
+    
+    # 添加到应用日志
+    app.logger.addHandler(file_handler)
+    app.logger.info('校园众创平台 启动')
 
-@app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('500.html'), 500
-
-# 注册所有蓝图
-register_blueprints(app)
+# 创建应用实例（使用环境变量或默认为开发环境）
+app = create_app(os.environ.get('FLASK_ENV', 'development'))
 
 # 如果作为主程序运行
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run() 
