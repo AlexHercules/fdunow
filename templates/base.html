@@ -30,17 +30,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint.startswith('crowdfunding') %}active{% endif %}" href="{{ url_for('crowdfunding.index') }}">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('crowdfunding') %}active{% endif %}" href="{{ url_for('crowdfunding.index') }}">
                             <i class="fas fa-hand-holding-usd me-1"></i>众筹
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint.startswith('team') %}active{% endif %}" href="{{ url_for('team.index') }}">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('team') %}active{% endif %}" href="{{ url_for('team.index') }}">
                             <i class="fas fa-users me-1"></i>组队
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint.startswith('social') %}active{% endif %}" href="{{ url_for('social.index') }}">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('social') %}active{% endif %}" href="{{ url_for('social.index') }}">
                             <i class="fas fa-comments me-1"></i>社交
                         </a>
                     </li>

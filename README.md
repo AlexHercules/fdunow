@@ -79,6 +79,29 @@ flask run
 
 4. 在浏览器中访问：`http://127.0.0.1:5000/`
 
+## 如何运行测试
+
+1. 安装测试依赖：
+```bash
+pip install pytest
+```
+
+2. 运行所有测试：
+```bash
+pytest
+```
+
+3. 运行特定测试文件：
+```bash
+pytest tests/test_app.py
+```
+
+4. 查看测试覆盖率：
+```bash
+pytest --cov=. tests/
+```
+注意：需要安装pytest-cov包 `pip install pytest-cov`
+
 ## 模块功能详解
 
 ### 众筹模块
