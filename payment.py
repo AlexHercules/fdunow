@@ -1,12 +1,125 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from models import db, Donation, Project
+from flask_restx import Namespace, Resource, fields, reqparse
+from models import db, Donation, Project, User
 from datetime import datetime
 import random
 import string
 
 # 创建蓝图
 payment_bp = Blueprint('payment', __name__, url_prefix='/payment')
+
+# 创建API命名空间
+ns = Namespace('支付', description='支付与捐赠模块API接口')
+
+# 定义API模型
+donation_model = ns.model('Donation', {
+    'id': fields.Integer(readonly=True, description='捐赠ID'),
+    'amount': fields.Float(required=True, description='捐赠金额'),
+    'message': fields.String(description='留言'),
+    'is_anonymous': fields.Boolean(description='是否匿名', default=False),
+    'created_at': fields.DateTime(readonly=True, description='捐赠时间'),
+    'donor_id': fields.Integer(readonly=True, description='捐赠者ID'),
+    'project_id': fields.Integer(required=True, description='项目ID')
+})
+
+payment_model = ns.model('Payment', {
+    'id': fields.String(readonly=True, description='支付ID'),
+    'amount': fields.Float(required=True, description='支付金额'),
+    'status': fields.String(readonly=True, description='支付状态', enum=['pending', 'success', 'failed']),
+    'created_at': fields.DateTime(readonly=True, description='创建时间'),
+    'completed_at': fields.DateTime(readonly=True, description='完成时间'),
+    'donation_id': fields.Integer(readonly=True, description='关联的捐赠ID')
+})
+
+# 查询参数解析器
+donation_list_parser = reqparse.RequestParser()
+donation_list_parser.add_argument('project_id', type=int, help='项目ID')
+donation_list_parser.add_argument('user_id', type=int, help='用户ID')
+donation_list_parser.add_argument('page', type=int, default=1, help='页码')
+donation_list_parser.add_argument('per_page', type=int, default=10, help='每页数量')
+
+# API资源
+@ns.route('/donations')
+class DonationList(Resource):
+    @ns.doc('获取捐赠列表')
+    @ns.expect(donation_list_parser)
+    @ns.marshal_list_with(donation_model)
+    def get(self):
+        """获取捐赠列表"""
+        args = donation_list_parser.parse_args()
+        project_id = args.get('project_id')
+        user_id = args.get('user_id')
+        page = args.get('page', 1)
+        per_page = args.get('per_page', 10)
+        
+        query = Donation.query
+        
+        if project_id:
+            query = query.filter_by(project_id=project_id)
+        
+        if user_id:
+            query = query.filter_by(donor_id=user_id)
+        
+        # 分页
+        pagination = query.order_by(Donation.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        return pagination.items
+    
+    @ns.doc('创建捐赠')
+    @ns.expect(donation_model)
+    @ns.marshal_with(donation_model, code=201)
+    @ns.response(401, '未登录')
+    @ns.response(400, '无效请求')
+    def post(self):
+        """创建新捐赠"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/donations/<int:id>')
+@ns.param('id', '捐赠ID')
+@ns.response(404, '捐赠不存在')
+class DonationDetail(Resource):
+    @ns.doc('获取捐赠详情')
+    @ns.marshal_with(donation_model)
+    def get(self, id):
+        """获取捐赠详情"""
+        donation = Donation.query.get_or_404(id)
+        return donation
+
+@ns.route('/pay')
+class PaymentCreate(Resource):
+    @ns.doc('创建支付')
+    @ns.expect(ns.model('NewPayment', {
+        'donation_id': fields.Integer(required=True, description='捐赠ID'),
+        'payment_method': fields.String(required=True, description='支付方式', enum=['alipay', 'wechat', 'creditcard'])
+    }))
+    @ns.marshal_with(payment_model, code=201)
+    @ns.response(401, '未登录')
+    @ns.response(400, '无效请求')
+    def post(self):
+        """创建支付请求"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/pay/callback')
+class PaymentCallback(Resource):
+    @ns.doc('支付回调')
+    @ns.response(200, '处理成功')
+    def post(self):
+        """支付结果回调处理"""
+        # 这里仅是API文档演示
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/pay/<string:payment_id>/status')
+@ns.param('payment_id', '支付ID')
+class PaymentStatus(Resource):
+    @ns.doc('查询支付状态')
+    @ns.marshal_with(payment_model)
+    @ns.response(404, '支付不存在')
+    def get(self, payment_id):
+        """查询支付状态"""
+        # 这里仅是API文档演示
+        return {'message': '功能未实现'}, 501
 
 # 模拟支付处理
 @payment_bp.route('/process', methods=['POST'])

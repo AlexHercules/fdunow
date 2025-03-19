@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
+from flask_restx import Api
 from models import db, User
 from config import config
 
@@ -36,13 +37,23 @@ def create_app(config_name='default'):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
+    # 初始化API文档
+    api = Api(
+        app, 
+        version='1.0', 
+        title='校园众创平台 API',
+        description='众筹、组队和社交模块接口文档',
+        doc='/api/docs',
+        prefix='/api'
+    )
+    
     # 首页路由
     @app.route('/')
     def index():
         return render_template('index.html', title='校园众创平台')
     
-    # 注册蓝图
-    register_blueprints(app)
+    # 注册蓝图和API命名空间
+    register_blueprints(app, api)
     
     # 配置错误处理
     configure_error_handlers(app)
@@ -58,17 +69,35 @@ def create_app(config_name='default'):
     
     return app
 
-def register_blueprints(app):
-    """注册所有蓝图"""
+def register_blueprints(app, api):
+    """注册所有蓝图和API命名空间"""
+    # 导入蓝图
     from crowdfunding import crowdfunding_bp
     from team import team_bp
     from social import social_bp
     from payment import payment_bp
     
+    # 注册网页路由蓝图
     app.register_blueprint(crowdfunding_bp)
     app.register_blueprint(team_bp)
     app.register_blueprint(social_bp)
     app.register_blueprint(payment_bp)
+    
+    # 导入并注册API命名空间
+    try:
+        # 导入API命名空间
+        from crowdfunding import ns as crowdfunding_ns
+        from team import ns as team_ns
+        from social import ns as social_ns
+        from payment import ns as payment_ns
+        
+        # 注册到API
+        api.add_namespace(crowdfunding_ns, path='/crowdfunding')
+        api.add_namespace(team_ns, path='/team')
+        api.add_namespace(social_ns, path='/social')
+        api.add_namespace(payment_ns, path='/payment')
+    except ImportError as e:
+        app.logger.warning(f"API命名空间导入异常: {e}")
 
 def configure_error_handlers(app):
     """配置错误处理器"""

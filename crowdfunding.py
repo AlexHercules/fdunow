@@ -1,11 +1,175 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
+from flask_restx import Namespace, Resource, fields, reqparse
 from models import db, Project, ProjectUpdate, Team, Donation, ProjectCategory, user_likes
 from datetime import datetime
 import os
 
 # 创建蓝图
 crowdfunding_bp = Blueprint('crowdfunding', __name__, url_prefix='/crowdfunding')
+
+# 创建API命名空间
+ns = Namespace('众筹', description='众筹模块API接口')
+
+# 定义API模型
+project_model = ns.model('Project', {
+    'id': fields.Integer(readonly=True, description='项目ID'),
+    'title': fields.String(required=True, description='项目标题'),
+    'description': fields.String(required=True, description='项目描述'),
+    'category': fields.String(required=True, description='项目分类', enum=[cat.name for cat in ProjectCategory]),
+    'target_amount': fields.Float(required=True, description='目标金额'),
+    'current_amount': fields.Float(readonly=True, description='已筹集金额'),
+    'start_date': fields.DateTime(readonly=True, description='开始日期'),
+    'end_date': fields.DateTime(description='结束日期'),
+    'status': fields.String(readonly=True, description='项目状态', enum=['draft', 'active', 'funded', 'closed']),
+    'likes_count': fields.Integer(readonly=True, description='点赞数'),
+    'creator_id': fields.Integer(readonly=True, description='创建者ID'),
+    'team_id': fields.Integer(description='团队ID'),
+    'image_url': fields.String(description='项目图片URL')
+})
+
+project_update_model = ns.model('ProjectUpdate', {
+    'id': fields.Integer(readonly=True, description='更新ID'),
+    'title': fields.String(required=True, description='更新标题'),
+    'content': fields.String(required=True, description='更新内容'),
+    'created_at': fields.DateTime(readonly=True, description='创建时间'),
+    'project_id': fields.Integer(readonly=True, description='项目ID')
+})
+
+donation_model = ns.model('Donation', {
+    'id': fields.Integer(readonly=True, description='捐赠ID'),
+    'amount': fields.Float(required=True, description='捐赠金额'),
+    'message': fields.String(description='留言'),
+    'is_anonymous': fields.Boolean(description='是否匿名', default=False),
+    'created_at': fields.DateTime(readonly=True, description='捐赠时间'),
+    'donor_id': fields.Integer(readonly=True, description='捐赠者ID'),
+    'project_id': fields.Integer(readonly=True, description='项目ID')
+})
+
+# 定义查询参数解析器
+project_list_parser = reqparse.RequestParser()
+project_list_parser.add_argument('category', type=str, help='项目分类')
+project_list_parser.add_argument('sort_by', choices=('latest', 'popular', 'funding'), default='latest', help='排序方式')
+project_list_parser.add_argument('page', type=int, default=1, help='页码')
+project_list_parser.add_argument('per_page', type=int, default=10, help='每页数量')
+
+# API资源
+@ns.route('/projects')
+class ProjectList(Resource):
+    @ns.doc('获取项目列表')
+    @ns.expect(project_list_parser)
+    @ns.marshal_list_with(project_model)
+    def get(self):
+        """获取众筹项目列表"""
+        args = project_list_parser.parse_args()
+        category = args.get('category', 'all')
+        sort_by = args.get('sort_by', 'latest')
+        page = args.get('page', 1)
+        per_page = args.get('per_page', 10)
+        
+        query = Project.query.filter(Project.status == 'active')
+        
+        # 按分类筛选
+        if category != 'all' and category in [cat.name for cat in ProjectCategory]:
+            query = query.filter(Project.category == ProjectCategory[category])
+        
+        # 排序
+        if sort_by == 'latest':
+            query = query.order_by(Project.created_at.desc())
+        elif sort_by == 'popular':
+            query = query.order_by(Project.likes_count.desc())
+        elif sort_by == 'funding':
+            query = query.order_by(Project.current_amount.desc())
+        
+        # 分页
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        return pagination.items
+    
+    @ns.doc('创建项目')
+    @ns.expect(project_model)
+    @ns.marshal_with(project_model, code=201)
+    @ns.response(403, '没有权限')
+    @ns.response(400, '无效请求')
+    def post(self):
+        """创建新众筹项目"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/projects/<int:id>')
+@ns.param('id', '项目ID')
+@ns.response(404, '项目不存在')
+class ProjectDetail(Resource):
+    @ns.doc('获取项目详情')
+    @ns.marshal_with(project_model)
+    def get(self, id):
+        """获取众筹项目详情"""
+        project = Project.query.get_or_404(id)
+        return project
+    
+    @ns.doc('更新项目')
+    @ns.expect(project_model)
+    @ns.marshal_with(project_model)
+    @ns.response(403, '没有权限')
+    def put(self, id):
+        """更新众筹项目"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+    
+    @ns.doc('删除项目')
+    @ns.response(204, '项目已删除')
+    @ns.response(403, '没有权限')
+    def delete(self, id):
+        """删除众筹项目"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/projects/<int:id>/like')
+@ns.param('id', '项目ID')
+class ProjectLike(Resource):
+    @ns.doc('点赞项目')
+    @ns.response(200, '操作成功')
+    @ns.response(404, '项目不存在')
+    def post(self, id):
+        """给项目点赞"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/projects/<int:id>/updates')
+@ns.param('id', '项目ID')
+class ProjectUpdateList(Resource):
+    @ns.doc('获取项目更新列表')
+    @ns.marshal_list_with(project_update_model)
+    def get(self, id):
+        """获取项目更新列表"""
+        updates = ProjectUpdate.query.filter_by(project_id=id).order_by(ProjectUpdate.created_at.desc()).all()
+        return updates
+    
+    @ns.doc('添加项目更新')
+    @ns.expect(project_update_model)
+    @ns.marshal_with(project_update_model, code=201)
+    @ns.response(403, '没有权限')
+    def post(self, id):
+        """添加项目更新"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/projects/<int:id>/donations')
+@ns.param('id', '项目ID')
+class ProjectDonationList(Resource):
+    @ns.doc('获取项目捐赠列表')
+    @ns.marshal_list_with(donation_model)
+    def get(self, id):
+        """获取项目捐赠列表"""
+        donations = Donation.query.filter_by(project_id=id).order_by(Donation.created_at.desc()).all()
+        return donations
+    
+    @ns.doc('捐赠项目')
+    @ns.expect(donation_model)
+    @ns.marshal_with(donation_model, code=201)
+    def post(self, id):
+        """向项目捐赠"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
 
 # 众筹项目列表页
 @crowdfunding_bp.route('/')

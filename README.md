@@ -102,6 +102,54 @@ pytest --cov=. tests/
 ```
 注意：需要安装pytest-cov包 `pip install pytest-cov`
 
+## API文档
+
+本项目使用Flask-RESTX提供了完整的API文档，包含所有接口的详细信息和在线测试功能。
+
+### 如何访问API文档
+
+1. 启动应用后，访问以下URL查看API文档界面：
+```
+http://127.0.0.1:5000/api/docs
+```
+
+2. API文档提供了以下功能模块的接口：
+   - 众筹模块 (/api/crowdfunding)
+   - 组队模块 (/api/team)
+   - 社交模块 (/api/social)
+   - 支付模块 (/api/payment)
+
+3. 每个接口都提供了详细的:
+   - 请求参数说明
+   - 返回数据格式
+   - 错误代码
+   - 在线测试功能
+
+### API使用示例
+
+获取所有众筹项目:
+```
+GET /api/crowdfunding/projects
+```
+
+创建新团队:
+```
+POST /api/team/teams
+Content-Type: application/json
+
+{
+  "name": "项目团队",
+  "description": "这是一个新团队",
+  "team_type": "PROJECT",
+  "max_members": 5,
+  "required_skills": "Python, Flask, 前端开发"
+}
+```
+
+### API认证
+
+大部分API需要用户登录后才能访问。认证方式将在后续版本中实现。
+
 ## 模块功能详解
 
 ### 众筹模块

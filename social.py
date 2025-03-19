@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
+from flask_restx import Namespace, Resource, fields, reqparse
 from models import db, User, Message, AnonymousChat, AnonymousChatMessage, GuidingQuestion, friendships
 from datetime import datetime
 from sqlalchemy import or_, and_
@@ -7,6 +8,162 @@ import random
 
 # 创建蓝图
 social_bp = Blueprint('social', __name__, url_prefix='/social')
+
+# 创建API命名空间
+ns = Namespace('社交', description='社交模块API接口')
+
+# 定义API模型
+chat_model = ns.model('AnonymousChat', {
+    'id': fields.Integer(readonly=True, description='匿名聊天ID'),
+    'status': fields.String(readonly=True, description='聊天状态', enum=['active', 'revealed', 'closed']),
+    'created_at': fields.DateTime(readonly=True, description='创建时间'),
+    'last_activity': fields.DateTime(readonly=True, description='最后活动时间'),
+    'intimacy_level': fields.Integer(readonly=True, description='亲密度等级', min=1, max=5),
+    'user1_id': fields.Integer(readonly=True, description='用户1 ID'),
+    'user2_id': fields.Integer(readonly=True, description='用户2 ID')
+})
+
+message_model = ns.model('ChatMessage', {
+    'id': fields.Integer(readonly=True, description='消息ID'),
+    'content': fields.String(required=True, description='消息内容'),
+    'created_at': fields.DateTime(readonly=True, description='发送时间'),
+    'is_from_user1': fields.Boolean(readonly=True, description='是否来自用户1'),
+    'chat_id': fields.Integer(readonly=True, description='聊天ID')
+})
+
+friend_model = ns.model('Friend', {
+    'id': fields.Integer(readonly=True, description='用户ID'),
+    'username': fields.String(readonly=True, description='用户名'),
+    'name': fields.String(readonly=True, description='姓名'),
+    'avatar': fields.String(readonly=True, description='头像'),
+    'status': fields.String(readonly=True, description='好友状态', enum=['pending', 'accepted', 'rejected'])
+})
+
+guiding_question_model = ns.model('GuidingQuestion', {
+    'id': fields.Integer(readonly=True, description='问题ID'),
+    'question': fields.String(readonly=True, description='问题内容'),
+    'category': fields.String(readonly=True, description='问题类别'),
+    'intimacy_level': fields.Integer(readonly=True, description='亲密度等级', min=1, max=5)
+})
+
+# API资源
+@ns.route('/chats')
+class ChatList(Resource):
+    @ns.doc('获取匿名聊天列表')
+    @ns.marshal_list_with(chat_model)
+    def get(self):
+        """获取当前用户的匿名聊天列表"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '需要登录才能访问'}, 401
+    
+    @ns.doc('开始新的匿名聊天')
+    @ns.response(201, '创建成功')
+    @ns.response(401, '未登录')
+    def post(self):
+        """开始新的匿名聊天"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/chats/<int:id>')
+@ns.param('id', '聊天ID')
+@ns.response(404, '聊天不存在')
+class ChatDetail(Resource):
+    @ns.doc('获取聊天详情')
+    @ns.marshal_with(chat_model)
+    def get(self, id):
+        """获取匿名聊天详情"""
+        chat = AnonymousChat.query.get_or_404(id)
+        return chat
+    
+    @ns.doc('更新聊天状态')
+    @ns.response(200, '更新成功')
+    @ns.response(403, '没有权限')
+    def put(self, id):
+        """更新聊天状态（例如揭示身份、关闭聊天）"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/chats/<int:id>/messages')
+@ns.param('id', '聊天ID')
+class ChatMessageList(Resource):
+    @ns.doc('获取聊天消息')
+    @ns.marshal_list_with(message_model)
+    def get(self, id):
+        """获取聊天消息列表"""
+        chat = AnonymousChat.query.get_or_404(id)
+        messages = AnonymousChatMessage.query.filter_by(chat_id=id).order_by(AnonymousChatMessage.created_at).all()
+        return messages
+    
+    @ns.doc('发送消息')
+    @ns.expect(ns.model('NewMessage', {
+        'content': fields.String(required=True, description='消息内容')
+    }))
+    @ns.marshal_with(message_model, code=201)
+    @ns.response(403, '没有权限')
+    def post(self, id):
+        """发送聊天消息"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/friends')
+class FriendList(Resource):
+    @ns.doc('获取好友列表')
+    @ns.marshal_list_with(friend_model)
+    def get(self):
+        """获取好友列表"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '需要登录才能访问'}, 401
+    
+    @ns.doc('添加好友')
+    @ns.expect(ns.model('NewFriend', {
+        'user_id': fields.Integer(required=True, description='用户ID')
+    }))
+    @ns.response(201, '好友请求已发送')
+    @ns.response(400, '无效请求')
+    @ns.response(401, '未登录')
+    def post(self):
+        """发送好友请求"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/friend-requests')
+class FriendRequestList(Resource):
+    @ns.doc('获取好友请求')
+    @ns.marshal_list_with(friend_model)
+    def get(self):
+        """获取待处理的好友请求"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '需要登录才能访问'}, 401
+
+@ns.route('/friend-requests/<int:id>')
+@ns.param('id', '请求ID')
+class FriendRequestAction(Resource):
+    @ns.doc('处理好友请求')
+    @ns.expect(ns.model('RequestAction', {
+        'action': fields.String(required=True, description='操作', enum=['accept', 'reject'])
+    }))
+    @ns.response(200, '处理成功')
+    @ns.response(403, '没有权限')
+    @ns.response(404, '请求不存在')
+    def put(self, id):
+        """接受或拒绝好友请求"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/guiding-questions')
+class GuidingQuestionList(Resource):
+    @ns.doc('获取引导问题')
+    @ns.expect(reqparse.RequestParser().add_argument('intimacy_level', type=int, help='亲密度等级(1-5)'))
+    @ns.marshal_with(guiding_question_model)
+    def get(self):
+        """获取随机引导问题"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('intimacy_level', type=int, help='亲密度等级(1-5)')
+        args = parser.parse_args()
+        intimacy_level = args.get('intimacy_level', 1)
+        
+        question = GuidingQuestion.query.filter_by(intimacy_level=intimacy_level).order_by(db.func.random()).first()
+        return question or {'question': '没有更多问题了'}
 
 # 社交首页
 @social_bp.route('/')

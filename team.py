@@ -1,11 +1,163 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
+from flask_restx import Namespace, Resource, fields, reqparse
 from models import db, Team, TeamType, team_members, User
 from datetime import datetime
 import os
 
 # 创建蓝图
 team_bp = Blueprint('team', __name__, url_prefix='/team')
+
+# 创建API命名空间
+ns = Namespace('组队', description='组队模块API接口')
+
+# 定义API模型
+team_model = ns.model('Team', {
+    'id': fields.Integer(readonly=True, description='团队ID'),
+    'name': fields.String(required=True, description='团队名称'),
+    'description': fields.String(required=True, description='团队描述'),
+    'team_type': fields.String(required=True, description='团队类型', enum=[t.name for t in TeamType]),
+    'max_members': fields.Integer(required=True, description='最大成员数', default=5),
+    'required_skills': fields.String(description='所需技能'),
+    'status': fields.String(readonly=True, description='团队状态', enum=['recruiting', 'full', 'closed']),
+    'created_at': fields.DateTime(readonly=True, description='创建时间'),
+    'creator_id': fields.Integer(readonly=True, description='创建者ID'),
+    'image_url': fields.String(description='团队图片URL')
+})
+
+member_model = ns.model('TeamMember', {
+    'user_id': fields.Integer(readonly=True, description='用户ID'),
+    'team_id': fields.Integer(readonly=True, description='团队ID'),
+    'role': fields.String(description='角色', enum=['creator', 'member']),
+    'join_time': fields.DateTime(readonly=True, description='加入时间'),
+    'username': fields.String(readonly=True, description='用户名'),
+    'avatar': fields.String(readonly=True, description='用户头像')
+})
+
+# 定义查询参数解析器
+team_list_parser = reqparse.RequestParser()
+team_list_parser.add_argument('type', type=str, help='团队类型')
+team_list_parser.add_argument('status', type=str, choices=('recruiting', 'full', 'closed', 'all'), default='all', help='团队状态')
+team_list_parser.add_argument('page', type=int, default=1, help='页码')
+team_list_parser.add_argument('per_page', type=int, default=10, help='每页数量')
+
+# API资源
+@ns.route('/teams')
+class TeamList(Resource):
+    @ns.doc('获取团队列表')
+    @ns.expect(team_list_parser)
+    @ns.marshal_list_with(team_model)
+    def get(self):
+        """获取团队列表"""
+        args = team_list_parser.parse_args()
+        team_type = args.get('type', 'all')
+        status = args.get('status', 'all')
+        page = args.get('page', 1)
+        per_page = args.get('per_page', 10)
+        
+        query = Team.query
+        
+        # 按团队类型筛选
+        if team_type != 'all' and team_type in [t.name for t in TeamType]:
+            query = query.filter(Team.team_type == TeamType[team_type])
+        
+        # 按团队状态筛选
+        if status != 'all':
+            query = query.filter(Team.status == status)
+        
+        # 分页
+        pagination = query.order_by(Team.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        return pagination.items
+    
+    @ns.doc('创建团队')
+    @ns.expect(team_model)
+    @ns.marshal_with(team_model, code=201)
+    @ns.response(403, '没有权限')
+    @ns.response(400, '无效请求')
+    def post(self):
+        """创建新团队"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/teams/<int:id>')
+@ns.param('id', '团队ID')
+@ns.response(404, '团队不存在')
+class TeamDetail(Resource):
+    @ns.doc('获取团队详情')
+    @ns.marshal_with(team_model)
+    def get(self, id):
+        """获取团队详情"""
+        team = Team.query.get_or_404(id)
+        return team
+    
+    @ns.doc('更新团队')
+    @ns.expect(team_model)
+    @ns.marshal_with(team_model)
+    @ns.response(403, '没有权限')
+    def put(self, id):
+        """更新团队信息"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+    
+    @ns.doc('关闭团队')
+    @ns.response(204, '团队已关闭')
+    @ns.response(403, '没有权限')
+    def delete(self, id):
+        """关闭团队"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/teams/<int:id>/members')
+@ns.param('id', '团队ID')
+class TeamMemberList(Resource):
+    @ns.doc('获取团队成员')
+    @ns.marshal_list_with(member_model)
+    def get(self, id):
+        """获取团队成员列表"""
+        team = Team.query.get_or_404(id)
+        members = []
+        
+        for user in team.members:
+            # 查找团队成员关系信息
+            member_info = db.session.query(team_members).filter_by(
+                user_id=user.id, team_id=id
+            ).first()
+            
+            if member_info:
+                members.append({
+                    'user_id': user.id,
+                    'team_id': id,
+                    'role': member_info.role,
+                    'join_time': member_info.join_time,
+                    'username': user.username,
+                    'avatar': user.avatar
+                })
+                
+        return members
+
+@ns.route('/teams/<int:id>/join')
+@ns.param('id', '团队ID')
+class TeamJoin(Resource):
+    @ns.doc('加入团队')
+    @ns.response(200, '加入成功')
+    @ns.response(403, '没有权限或团队已满')
+    @ns.response(404, '团队不存在')
+    def post(self, id):
+        """加入团队"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
+
+@ns.route('/teams/<int:id>/leave')
+@ns.param('id', '团队ID')
+class TeamLeave(Resource):
+    @ns.doc('离开团队')
+    @ns.response(200, '离开成功')
+    @ns.response(403, '没有权限或您是创建者')
+    @ns.response(404, '团队不存在')
+    def post(self, id):
+        """离开团队"""
+        # 这里仅是API文档演示，实际需要验证用户权限
+        return {'message': '功能未实现'}, 501
 
 # 所有团队列表页面
 @team_bp.route('/')
