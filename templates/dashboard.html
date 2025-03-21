@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}功能中心{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>欢迎，{{ current_user.username }}</h1>
+    
+    <div class="module-grid">
+        <a href="{{ url_for('crowdfunding') }}" class="module-card">
+            <div class="card-icon">
+                <img src="{{ url_for('static', filename='images/crowdfunding.svg') }}" alt="众筹图标">
+            </div>
+            <h2>众筹平台</h2>
+            <p>浏览项目、发起众筹、支持他人</p>
+        </a>
+        
+        <a href="{{ url_for('team') }}" class="module-card">
+            <div class="card-icon">
+                <img src="{{ url_for('static', filename='images/team.svg') }}" alt="团队图标">
+            </div>
+            <h2>团队组建</h2>
+            <p>创建团队、寻找成员、加入项目</p>
+        </a>
+        
+        <a href="{{ url_for('social') }}" class="module-card">
+            <div class="card-icon">
+                <img src="{{ url_for('static', filename='images/social.svg') }}" alt="社交图标">
+            </div>
+            <h2>社交网络</h2>
+            <p>建立联系、参与讨论、拓展人脉</p>
+        </a>
+        
+        <a href="{{ url_for('payment') }}" class="module-card">
+            <div class="card-icon">
+                <img src="{{ url_for('static', filename='images/payment.svg') }}" alt="支付图标">
+            </div>
+            <h2>支付管理</h2>
+            <p>管理资金、查看交易、设置账户</p>
+        </a>
+    </div>
+    
+    <div class="recent-activity">
+        <h2>最近活动</h2>
+        <div class="activity-list">
+            <p>暂无活动记录</p>
+            <!-- 活动记录将在这里展示 -->
+        </div>
+    </div>
+</div>
+{% endblock %} 

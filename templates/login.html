@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}登录{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-form">
+        <h1>用户登录</h1>
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">记住我</label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">登录</button>
+        </form>
+        
+        <div class="auth-links">
+            <p>还没有账号？<a href="{{ url_for('register') }}">立即注册</a></p>
+            <p><a href="#">忘记密码？</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,172 +1,182 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}首页{% endblock %}
 
 {% block content %}
-<div class="jumbotron bg-light p-5 rounded-3 mb-4">
-    <div class="container">
-        <h1 class="display-4">欢迎来到校园众创平台</h1>
-        <p class="lead">一个集众筹、组队和社交于一体的校园创新平台。在这里，你可以展示创意、寻找伙伴、拓展社交圈。</p>
-        <hr class="my-4">
-        <p>无论是有创意需要支持，还是想找到志同道合的伙伴，或是希望拓展社交圈，我们都能满足你的需求。</p>
-        <div class="d-flex gap-2 mt-3">
-            <a class="btn btn-primary btn-lg" href="{{ url_for('crowdfunding.index') }}" role="button">
-                <i class="fas fa-hand-holding-usd me-1"></i>浏览众筹项目
-            </a>
-            <a class="btn btn-success btn-lg" href="{{ url_for('team.index') }}" role="button">
-                <i class="fas fa-users me-1"></i>查看组队信息
-            </a>
-            <a class="btn btn-info btn-lg text-white" href="{{ url_for('social.index') }}" role="button">
-                <i class="fas fa-comments me-1"></i>探索社交圈
-            </a>
+<!-- 全屏轮播区域 -->
+<div class="banner-slider">
+    <div class="slider-container">
+        <div class="slide active">
+            <img src="{{ url_for('static', filename='images/fudan1.jpg') }}" alt="复旦大学风景">
+            <div class="slide-content">
+                <h1>校园众创平台</h1>
+                <p>连接创意、人才与资源的校园创新生态系统</p>
+                <div class="slide-buttons">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">立即加入</a>
+                    <a href="#features" class="btn btn-outline">了解更多</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide">
+            <img src="{{ url_for('static', filename='images/fudan2.jpg') }}" alt="复旦大学图书馆">
+            <div class="slide-content">
+                <h1>汇聚创新力量</h1>
+                <p>为校园创新创业项目提供全方位支持</p>
+                <div class="slide-buttons">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">开始创业旅程</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide">
+            <img src="{{ url_for('static', filename='images/fudan3.jpg') }}" alt="复旦大学校园">
+            <div class="slide-content">
+                <h1>寻找志同道合的伙伴</h1>
+                <p>组建你的梦想团队，实现创新突破</p>
+                <div class="slide-buttons">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">探索团队</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slider-controls">
+        <span class="dot active" data-index="0"></span>
+        <span class="dot" data-index="1"></span>
+        <span class="dot" data-index="2"></span>
+    </div>
+</div>
+
+<!-- 消息通知栏 -->
+<div class="news-bar">
+    <div class="news-bar-title">最新通知</div>
+    <div class="news-bar-content">
+        <div class="news-item">
+            <a href="#">校园众创平台正式上线，欢迎各位同学加入！</a>
+            <span class="news-date">2023-11-21</span>
+        </div>
+        <div class="news-item">
+            <a href="#">第三届复旦大学创新创业大赛报名开始</a>
+            <span class="news-date">2023-11-18</span>
+        </div>
+        <div class="news-item">
+            <a href="#">关于举办"创新思维与商业模式"讲座的通知</a>
+            <span class="news-date">2023-11-15</span>
+        </div>
+    </div>
+    <a href="#" class="news-more">更多 ></a>
+</div>
+
+<!-- 功能展示区 -->
+<div class="features-section" id="features">
+    <div class="section-container">
+        <h2 class="section-title">平台功能</h2>
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="{{ url_for('static', filename='images/crowdfunding.svg') }}" alt="众筹图标">
+                </div>
+                <h3>众筹平台</h3>
+                <p>为校园创意项目提供众筹支持，连接创新者与投资人</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="{{ url_for('static', filename='images/team.svg') }}" alt="团队图标">
+                </div>
+                <h3>团队组建</h3>
+                <p>寻找志同道合的伙伴，组建理想的创业团队</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="{{ url_for('static', filename='images/social.svg') }}" alt="社交图标">
+                </div>
+                <h3>社交网络</h3>
+                <p>建立创新社区，分享想法，结交朋友</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="{{ url_for('static', filename='images/payment.svg') }}" alt="支付图标">
+                </div>
+                <h3>支付系统</h3>
+                <p>安全便捷的支付解决方案，支持项目资金流转</p>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- 三大功能块介绍 -->
-<div class="row mb-5">
-    <div class="col-md-4 mb-4 mb-md-0">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <div class="feature-icon bg-primary text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-                    <i class="fas fa-hand-holding-usd fa-2x"></i>
+<!-- 创新项目展示 -->
+<div class="projects-section">
+    <div class="section-container">
+        <h2 class="section-title">优秀创新项目</h2>
+        <div class="projects-grid">
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="{{ url_for('static', filename='images/project1.jpg') }}" alt="项目一">
                 </div>
-                <h3 class="card-title">众筹模块</h3>
-                <p class="card-text">发布你的创意项目，获得点赞验证和资金支持，一键组建项目团队。</p>
-                <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-outline-primary mt-2">了解更多</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4 mb-md-0">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <div class="feature-icon bg-success text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-                    <i class="fas fa-users fa-2x"></i>
+                <div class="project-content">
+                    <h3>智能校园导航系统</h3>
+                    <p>基于AR技术的校园导航解决方案，帮助新生和访客快速找到目的地</p>
+                    <a href="#" class="btn btn-text">了解更多 ></a>
                 </div>
-                <h3 class="card-title">组队模块</h3>
-                <p class="card-text">根据学习、比赛、创业等不同场景，轻松发起或加入团队，找到志同道合的伙伴。</p>
-                <a href="{{ url_for('team.index') }}" class="btn btn-outline-success mt-2">了解更多</a>
             </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <div class="feature-icon bg-info text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-                    <i class="fas fa-comments fa-2x"></i>
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="{{ url_for('static', filename='images/project2.jpg') }}" alt="项目二">
                 </div>
-                <h3 class="card-title">社交模块</h3>
-                <p class="card-text">从匿名对话开始，通过引导式互动逐步揭示身份，拓展你的校园社交圈。</p>
-                <a href="{{ url_for('social.index') }}" class="btn btn-outline-info mt-2">了解更多</a>
+                <div class="project-content">
+                    <h3>校园二手交易平台</h3>
+                    <p>为大学生提供安全、便捷的二手物品交易服务，促进资源循环利用</p>
+                    <a href="#" class="btn btn-text">了解更多 ></a>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- 数据统计 -->
-<div class="bg-light p-5 rounded-3 mb-5">
-    <div class="container">
-        <h2 class="text-center mb-4">平台数据</h2>
-        <div class="row text-center">
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h3 class="display-4 fw-bold text-primary">{{ '50+' }}</h3>
-                <p class="lead">众筹项目</p>
-            </div>
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h3 class="display-4 fw-bold text-success">{{ '100+' }}</h3>
-                <p class="lead">组队需求</p>
-            </div>
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h3 class="display-4 fw-bold text-info">{{ '1000+' }}</h3>
-                <p class="lead">匿名对话</p>
-            </div>
-            <div class="col-md-3">
-                <h3 class="display-4 fw-bold text-danger">{{ '500+' }}</h3>
-                <p class="lead">活跃用户</p>
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="{{ url_for('static', filename='images/project3.jpg') }}" alt="项目三">
+                </div>
+                <div class="project-content">
+                    <h3>大学生心理健康助手</h3>
+                    <p>结合AI技术的心理健康评估与辅导系统，为大学生提供心理支持</p>
+                    <a href="#" class="btn btn-text">了解更多 ></a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 热门内容 -->
-<div class="row mb-4">
-    <div class="col-md-6 mb-4 mb-md-0">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="m-0"><i class="fas fa-fire me-2"></i>热门众筹项目</h4>
+<!-- 关于我们 -->
+<div class="about-section" id="about">
+    <div class="section-container">
+        <h2 class="section-title">关于我们</h2>
+        <div class="about-content">
+            <div class="about-image">
+                <img src="{{ url_for('static', filename='images/about.jpg') }}" alt="关于我们">
             </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">校园快递自提柜改进计划</h5>
-                            <small class="text-muted">3天前</small>
-                        </div>
-                        <p class="mb-1">解决校内快递自提效率低下问题，提供智能化解决方案。</p>
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">校园文创产品设计大赛</h5>
-                            <small class="text-muted">5天前</small>
-                        </div>
-                        <p class="mb-1">征集具有校园特色的文创设计，优胜作品将获得生产机会。</p>
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">校园共享单车管理系统</h5>
-                            <small class="text-muted">1周前</small>
-                        </div>
-                        <p class="mb-1">开发校园专属共享单车管理系统，解决乱停乱放问题。</p>
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-sm btn-outline-primary">查看更多项目</a>
+            <div class="about-text">
+                <p>校园众创平台是复旦大学创新创业中心发起的综合服务平台，致力于为校园创新创业者提供全方位支持。</p>
+                <p>平台汇集了校内外优质资源，打造开放、共享、协作的创新生态，支持学生从创意孵化、团队组建到资金筹集的全流程。</p>
+                <p>我们的使命是培养创新思维，激发创业热情，帮助有梦想的学生将创意转化为现实。</p>
+                <a href="#" class="btn btn-outline">查看更多</a>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h4 class="m-0"><i class="fas fa-star me-2"></i>最新组队需求</h4>
+</div>
+
+<!-- 合作伙伴 -->
+<div class="partners-section">
+    <div class="section-container">
+        <h2 class="section-title">合作伙伴</h2>
+        <div class="partners-logos">
+            <div class="partner-logo">
+                <img src="{{ url_for('static', filename='images/partner1.png') }}" alt="合作伙伴1">
             </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">人工智能创新大赛</h5>
-                            <small><span class="badge bg-success">比赛</span></small>
-                        </div>
-                        <p class="mb-1">招募算法、前端和产品设计人员，共同参与全国大学生AI创新大赛。</p>
-                        <small class="text-muted">已有3人加入，还需2人</small>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">高等数学辅导小组</h5>
-                            <small><span class="badge bg-info">学习</span></small>
-                        </div>
-                        <p class="mb-1">寻找数学好的同学组建高数学习小组，互相督促，共同提高。</p>
-                        <small class="text-muted">已有2人加入，还需3人</small>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">校园APP创业团队</h5>
-                            <small><span class="badge bg-warning text-dark">创业</span></small>
-                        </div>
-                        <p class="mb-1">招募产品经理、UI设计师和后端开发，打造校园生活服务APP。</p>
-                        <small class="text-muted">已有2人加入，还需3人</small>
-                    </a>
-                </div>
+            <div class="partner-logo">
+                <img src="{{ url_for('static', filename='images/partner2.png') }}" alt="合作伙伴2">
             </div>
-            <div class="card-footer">
-                <a href="{{ url_for('team.index') }}" class="btn btn-sm btn-outline-success">查看更多组队</a>
+            <div class="partner-logo">
+                <img src="{{ url_for('static', filename='images/partner3.png') }}" alt="合作伙伴3">
+            </div>
+            <div class="partner-logo">
+                <img src="{{ url_for('static', filename='images/partner4.png') }}" alt="合作伙伴4">
+            </div>
+            <div class="partner-logo">
+                <img src="{{ url_for('static', filename='images/partner5.png') }}" alt="合作伙伴5">
             </div>
         </div>
     </div>
@@ -175,18 +185,36 @@
 
 {% block scripts %}
 <script>
-    // 首页特效脚本可以放在这里
-    $(document).ready(function() {
-        // 平滑滚动效果
-        $('a[href^="#"]').on('click', function(event) {
-            var target = $(this.getAttribute('href'));
-            if (target.length) {
-                event.preventDefault();
-                $('html, body').stop().animate({
-                    scrollTop: target.offset().top
-                }, 1000);
-            }
+    // 轮播图控制
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        const totalSlides = slides.length;
+        
+        // 自动轮播
+        setInterval(() => {
+            changeSlide((currentSlide + 1) % totalSlides);
+        }, 5000);
+        
+        // 点击指示器切换轮播
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const slideIndex = parseInt(this.getAttribute('data-index'));
+                changeSlide(slideIndex);
+            });
         });
+        
+        // 切换轮播图
+        function changeSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            dots[currentSlide].classList.remove('active');
+            
+            currentSlide = index;
+            
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
     });
 </script>
 {% endblock %} 
