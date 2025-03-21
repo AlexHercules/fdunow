@@ -3,10 +3,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_migrate import Migrate
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_restx import Api
 from models import db, User
 from config import config
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # 创建应用工厂函数
 def create_app(config_name='default'):
@@ -51,6 +52,85 @@ def create_app(config_name='default'):
     @app.route('/')
     def index():
         return render_template('index.html', title='校园众创平台')
+    
+    # 登录路由
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        """用户登录页面"""
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+            
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            remember = 'remember' in request.form
+            
+            user = User.query.filter_by(username=username).first()
+            
+            if user and check_password_hash(user.password_hash, password):
+                login_user(user, remember=remember)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            else:
+                flash('用户名或密码错误')
+        
+        return render_template('login.html')
+    
+    # 注册路由
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        """用户注册页面"""
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+            
+        if request.method == 'POST':
+            username = request.form.get('username')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            
+            # 验证表单
+            if not all([username, email, password, confirm_password]):
+                flash('请填写所有必填字段')
+                return render_template('register.html')
+                
+            if password != confirm_password:
+                flash('两次输入的密码不一致')
+                return render_template('register.html')
+                
+            # 检查用户名和邮箱是否已存在
+            if User.query.filter_by(username=username).first():
+                flash('用户名已存在')
+                return render_template('register.html')
+                
+            if User.query.filter_by(email=email).first():
+                flash('邮箱已被注册')
+                return render_template('register.html')
+            
+            # 创建新用户
+            user = User(username=username, email=email)
+            user.password_hash = generate_password_hash(password)
+            db.session.add(user)
+            db.session.commit()
+            
+            flash('注册成功，请登录')
+            return redirect(url_for('login'))
+        
+        return render_template('register.html')
+    
+    # 退出登录路由
+    @app.route('/logout')
+    @login_required
+    def logout():
+        logout_user()
+        return redirect(url_for('index'))
+    
+    # 仪表盘路由
+    @app.route('/dashboard')
+    @login_required
+    def dashboard():
+        """登录后的功能导航页面"""
+        return render_template('dashboard.html')
     
     # 注册蓝图和API命名空间
     register_blueprints(app, api)
