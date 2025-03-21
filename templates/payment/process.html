@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}处理支付{% endblock %}
+
+{% block content %}
+<div class="container payment-container">
+    <h1 class="page-title">确认支付</h1>
+    
+    <div class="payment-details">
+        <div class="payment-info">
+            <h3>支付详情</h3>
+            <div class="detail-item">
+                <span class="detail-label">项目名称:</span>
+                <span class="detail-value">{{ project.title }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">支付金额:</span>
+                <span class="detail-value">¥{{ amount }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">支付ID:</span>
+                <span class="detail-value">{{ payment_id }}</span>
+            </div>
+            {% if message %}
+            <div class="detail-item">
+                <span class="detail-label">留言:</span>
+                <span class="detail-value">{{ message }}</span>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+                <span class="detail-label">匿名捐赠:</span>
+                <span class="detail-value">{{ '是' if is_anonymous else '否' }}</span>
+            </div>
+        </div>
+        
+        <div class="payment-methods">
+            <h3>选择支付方式</h3>
+            <div class="methods-grid">
+                <div class="method-card selected" data-method="wechat">
+                    <img src="{{ url_for('static', filename='images/payment/wechat.png') }}" alt="微信支付">
+                    <span>微信支付</span>
+                </div>
+                <div class="method-card" data-method="alipay">
+                    <img src="{{ url_for('static', filename='images/payment/alipay.png') }}" alt="支付宝">
+                    <span>支付宝</span>
+                </div>
+                <div class="method-card" data-method="creditcard">
+                    <img src="{{ url_for('static', filename='images/payment/creditcard.png') }}" alt="银行卡">
+                    <span>银行卡</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="payment-actions">
+        <form method="POST" action="{{ url_for('payment.complete_payment') }}">
+            <input type="hidden" name="payment_id" value="{{ payment_id }}">
+            <input type="hidden" name="project_id" value="{{ project.id }}">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="message" value="{{ message }}">
+            <input type="hidden" name="is_anonymous" value="{{ is_anonymous }}">
+            <input type="hidden" name="payment_method" id="payment_method" value="wechat">
+            
+            <button type="submit" class="btn btn-primary" id="pay-button">确认支付</button>
+            <a href="{{ url_for('crowdfunding.project_detail', project_id=project.id) }}" class="btn btn-outline">取消</a>
+        </form>
+    </div>
+    
+    <div class="payment-security">
+        <p><i class="security-icon"></i> 所有支付信息已加密，支付过程安全可靠</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 支付方式选择
+        const methodCards = document.querySelectorAll('.method-card');
+        const paymentMethodInput = document.getElementById('payment_method');
+        
+        methodCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // 移除所有卡片的选中状态
+                methodCards.forEach(c => c.classList.remove('selected'));
+                
+                // 添加当前卡片的选中状态
+                this.classList.add('selected');
+                
+                // 更新隐藏输入
+                paymentMethodInput.value = this.getAttribute('data-method');
+            });
+        });
+        
+        // 支付状态模拟
+        const payButton = document.getElementById('pay-button');
+        
+        payButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            payButton.textContent = '处理中...';
+            payButton.disabled = true;
+            
+            // 模拟支付处理延迟
+            setTimeout(() => {
+                document.querySelector('form').submit();
+            }, 1500);
+        });
+    });
+</script>
+{% endblock %} 

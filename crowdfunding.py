@@ -226,7 +226,8 @@ def project_detail(project_id):
                           project=project,
                           updates=updates,
                           progress=progress,
-                          user_liked=user_liked)
+                          user_liked=user_liked,
+                          now=datetime.utcnow())
 
 # 创建项目页面
 @crowdfunding_bp.route('/create', methods=['GET', 'POST'])
@@ -491,32 +492,14 @@ def donate(project_id):
         is_anonymous = 'is_anonymous' in request.form
         
         if amount <= 0:
-            flash('捐赠金额必须大于0', 'warning')
-            return redirect(url_for('crowdfunding.donate', project_id=project_id))
+            flash('捐赠金额必须大于0', 'danger')
+            return render_template('crowdfunding/donate.html', project=project)
         
-        # 创建捐赠记录
-        donation = Donation(
-            amount=amount,
-            message=message,
-            is_anonymous=is_anonymous,
-            donor_id=current_user.id,
-            project_id=project_id
-        )
-        
-        db.session.add(donation)
-        
-        # 更新项目筹集金额
-        project.current_amount += amount
-        
-        # 检查是否达到目标金额
-        if project.current_amount >= project.target_amount and project.target_amount > 0:
-            project.status = 'funded'
-        
-        db.session.commit()
-        
-        flash('感谢您的支持！', 'success')
-        return redirect(url_for('crowdfunding.project_detail', project_id=project_id))
+        # 重定向到支付处理页面
+        return redirect(url_for('payment.process_payment', 
+                               amount=amount, 
+                               project_id=project_id,
+                               message=message,
+                               is_anonymous=is_anonymous))
     
-    return render_template('crowdfunding/donate.html',
-                          title='支持项目',
-                          project=project) 
+    return render_template('crowdfunding/donate.html', project=project) 

@@ -1,29 +1,34 @@
 {% extends "base.html" %}
-{% block title %}我的捐赠记录{% endblock %}
+{% block title %}{{ project.title }}的捐赠记录{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="page-title">我的捐赠记录</h1>
+    <h1 class="page-title">{{ project.title }}的捐赠记录</h1>
+    <p class="project-info">
+        总捐赠金额: <strong>¥{{ project.current_amount }}</strong> / 
+        目标金额: <strong>¥{{ project.target_amount }}</strong>
+    </p>
     
     <div class="donations-list">
         {% if donations %}
             <table class="donations-table">
                 <thead>
                     <tr>
-                        <th>项目</th>
+                        <th>捐赠者</th>
                         <th>金额</th>
                         <th>留言</th>
                         <th>时间</th>
-                        <th>状态</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for donation in donations %}
                     <tr>
                         <td>
-                            <a href="{{ url_for('crowdfunding.project_detail', project_id=donation.project_id) }}">
-                                {{ donation.project.title }}
-                            </a>
+                            {% if donation.is_anonymous %}
+                                <span class="text-muted">匿名用户</span>
+                            {% else %}
+                                {{ donation.donor.username }}
+                            {% endif %}
                         </td>
                         <td>¥{{ donation.amount }}</td>
                         <td>
@@ -34,19 +39,19 @@
                             {% endif %}
                         </td>
                         <td>{{ donation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>
-                            <span class="status-completed">已完成</span>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         {% else %}
             <div class="empty-state">
-                <p>您还没有任何捐赠记录</p>
-                <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-primary">浏览众筹项目</a>
+                <p>该项目还没有任何捐赠记录</p>
             </div>
         {% endif %}
+    </div>
+    
+    <div class="actions">
+        <a href="{{ url_for('crowdfunding.project_detail', project_id=project.id) }}" class="btn btn-outline">返回项目详情</a>
     </div>
 </div>
 {% endblock %} 

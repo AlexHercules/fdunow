@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container project-detail">
+    <div class="project-header">
+        <h1 class="project-title">{{ project.title }}</h1>
+        <div class="project-meta">
+            <span class="category">{{ project.category.value }}</span>
+            <span class="status {{ project.status }}">{{ {'draft': '草稿', 'active': '筹款中', 'funded': '已达标', 'closed': '已结束'}[project.status] }}</span>
+        </div>
+    </div>
+    
+    <div class="project-content">
+        <div class="project-main">
+            {% if project.image_url %}
+            <div class="project-image">
+                <img src="{{ project.image_url }}" alt="{{ project.title }}">
+            </div>
+            {% endif %}
+            
+            <div class="project-description">
+                <h2>项目描述</h2>
+                <div class="content">
+                    {{ project.description|safe }}
+                </div>
+            </div>
+            
+            {% if updates %}
+            <div class="project-updates">
+                <h2>项目进展 ({{ updates|length }})</h2>
+                <div class="updates-list">
+                    {% for update in updates %}
+                    <div class="update-item">
+                        <h3>{{ update.title }}</h3>
+                        <div class="update-meta">
+                            <span class="date">{{ update.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        <div class="update-content">
+                            {{ update.content|safe }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="project-sidebar">
+            <div class="funding-status">
+                <div class="amounts">
+                    <div class="current">已筹：¥{{ project.current_amount }}</div>
+                    <div class="target">目标：¥{{ project.target_amount }}</div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ progress }}%"></div>
+                </div>
+                
+                <div class="progress-info">
+                    <span class="percent">{{ progress }}%</span>
+                    {% if project.end_date %}
+                    <span class="time-left">剩余 {{ (project.end_date - now).days }} 天</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="actions">
+                {% if project.status == 'active' %}
+                <a href="{{ url_for('crowdfunding.donate', project_id=project.id) }}" class="btn btn-primary btn-block">立即支持</a>
+                {% endif %}
+                
+                <div class="secondary-actions">
+                    <button class="btn-like {{ 'liked' if user_liked }}" data-project-id="{{ project.id }}">
+                        <i class="like-icon"></i>
+                        <span class="count">{{ project.likes_count }}</span>
+                    </button>
+                    
+                    <button class="btn-share" data-project-id="{{ project.id }}">
+                        <i class="share-icon"></i>
+                        分享
+                    </button>
+                </div>
+            </div>
+            
+            <div class="creator-info">
+                <h3>发起人</h3>
+                <div class="creator">
+                    <div class="avatar">
+                        {% if project.creator.avatar %}
+                        <img src="{{ project.creator.avatar }}" alt="{{ project.creator.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder">{{ project.creator.username[0] }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="info">
+                        <div class="name">{{ project.creator.username }}</div>
+                        <div class="projects">发起了 {{ project.creator.projects_created.count() }} 个项目</div>
+                    </div>
+                </div>
+                
+                {% if project.team %}
+                <div class="team">
+                    <h4>项目团队</h4>
+                    <a href="{{ url_for('team.team_detail', team_id=project.team.id) }}" class="team-link">
+                        {{ project.team.name }} ({{ project.team.members.count() }}人)
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 点赞功能
+        const likeBtn = document.querySelector('.btn-like');
+        if (likeBtn) {
+            likeBtn.addEventListener('click', function() {
+                const projectId = this.getAttribute('data-project-id');
+                
+                // 发送点赞请求
+                fetch(`/crowdfunding/${projectId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 更新UI
+                        this.classList.toggle('liked');
+                        const countEl = this.querySelector('.count');
+                        countEl.textContent = data.likes_count;
+                    } else if (data.error) {
+                        alert(data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('点赞失败:', error);
+                });
+            });
+        }
+        
+        // 分享功能
+        const shareBtn = document.querySelector('.btn-share');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                const projectId = this.getAttribute('data-project-id');
+                const url = window.location.origin + `/crowdfunding/${projectId}`;
+                
+                // 如果有Web Share API
+                if (navigator.share) {
+                    navigator.share({
+                        title: document.title,
+                        url: url
+                    });
+                } else {
+                    // 复制链接到剪贴板
+                    const tempInput = document.createElement('input');
+                    document.body.appendChild(tempInput);
+                    tempInput.value = url;
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    alert('链接已复制，快去分享吧！');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 
