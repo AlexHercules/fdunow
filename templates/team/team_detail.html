@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}{{ team.name }} - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+    .team-banner {
+        height: 250px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        margin-bottom: 30px;
+        border-radius: 0 0 10px 10px;
+        background-color: #e9ecef;
+    }
+    
+    .team-banner-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.7));
+        padding: 30px;
+        color: white;
+        border-radius: 0 0 10px 10px;
+    }
+    
+    .team-container {
+        padding-bottom: 50px;
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 250px);
+    }
+    
+    .team-card {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        margin-bottom: 30px;
+    }
+    
+    .team-content {
+        padding: 30px;
+    }
+    
+    .team-sidebar-card {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        margin-bottom: 20px;
+    }
+    
+    .team-sidebar-header {
+        padding: 15px 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        font-weight: 600;
+    }
+    
+    .team-sidebar-content {
+        padding: 20px;
+    }
+    
+    .team-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-right: 10px;
+    }
+    
+    .badge-project {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .badge-startup {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .badge-competition {
+        background-color: #fff3e0;
+        color: #e65100;
+    }
+    
+    .join-btn {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .team-progress {
+        height: 10px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .skill-tag {
+        display: inline-block;
+        padding: 5px 10px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="team-banner" style="background-image: url('/static/images/{{ team.image }}')">
+    <div class="team-banner-overlay">
+        <div class="container">
+            <span class="team-badge 
+                {% if team.team_type == '项目' %}badge-project
+                {% elif team.team_type == '创业' %}badge-startup
+                {% else %}badge-competition{% endif %}">
+                {{ team.team_type }}
+            </span>
+            <h1>{{ team.name }}</h1>
+            <p class="lead">{{ team.description }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="team-container">
+    <div class="container">
+        <div class="row">
+            <!-- 主要内容区 -->
+            <div class="col-md-8">
+                <div class="team-card">
+                    <div class="team-content">
+                        <div class="content-html">
+                            {{ team.content|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 侧边栏 -->
+            <div class="col-md-4">
+                <!-- 团队状态 -->
+                <div class="team-sidebar-card">
+                    <div class="team-sidebar-header">
+                        <i class="fas fa-info-circle me-2"></i> 团队状态
+                    </div>
+                    <div class="team-sidebar-content">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>成员数量：</span>
+                            <span class="text-primary">{{ team.members_count }}/{{ team.max_members }}</span>
+                        </div>
+                        <div class="progress team-progress">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                style="width: {{ (team.members_count / team.max_members * 100)|int }}%" 
+                                aria-valuenow="{{ team.members_count }}" aria-valuemin="0" 
+                                aria-valuemax="{{ team.max_members }}"></div>
+                        </div>
+                        
+                        <button class="btn btn-primary join-btn" id="joinTeamBtn" data-team-id="{{ team.id }}">
+                            <i class="fas fa-user-plus me-2"></i> 申请加入团队
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 所需技能 -->
+                <div class="team-sidebar-card">
+                    <div class="team-sidebar-header">
+                        <i class="fas fa-tools me-2"></i> 所需技能
+                    </div>
+                    <div class="team-sidebar-content">
+                        {% for skill in team.required_skills.split('、') %}
+                            <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- 团队创建者 -->
+                <div class="team-sidebar-card">
+                    <div class="team-sidebar-header">
+                        <i class="fas fa-user me-2"></i> 团队创建者
+                    </div>
+                    <div class="team-sidebar-content">
+                        <div class="d-flex align-items-center">
+                            <img src="/static/images/avatar-default.png" class="rounded-circle me-3" width="40" height="40" alt="创建者头像">
+                            <div>
+                                <h6 class="mb-0">admin</h6>
+                                <small class="text-muted">管理员</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 联系方式 -->
+                <div class="team-sidebar-card">
+                    <div class="team-sidebar-header">
+                        <i class="fas fa-envelope me-2"></i> 联系方式
+                    </div>
+                    <div class="team-sidebar-content">
+                        <p class="mb-2">
+                            <i class="fas fa-envelope me-2 text-muted"></i> 
+                            <span>admin@fdunow.com</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-comment-alt me-2 text-muted"></i> 
+                            <span>Wechat: fdunow</span>
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-phone me-2 text-muted"></i> 
+                            <span>联系电话请加入后查看</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 申请加入团队
+        $('#joinTeamBtn').click(function() {
+            const teamId = $(this).data('team-id');
+            
+            $.ajax({
+                url: `/team/join/${teamId}`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    } else {
+                        alert(response.message || '申请失败，请稍后再试');
+                    }
+                },
+                error: function() {
+                    alert('操作失败，请检查您的网络连接或登录状态');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

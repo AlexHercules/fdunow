@@ -2,7 +2,7 @@
 测试Flask应用的主要功能
 """
 import pytest
-from app import app
+from application import app
 
 @pytest.fixture
 def client():

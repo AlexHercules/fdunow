@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}创建团队 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+    .create-team-container {
+        padding: 30px 0;
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 250px);
+    }
+    
+    .form-card {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        padding: 30px;
+    }
+    
+    .form-title {
+        margin-bottom: 25px;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .form-help-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        border-radius: 8px;
+        background-color: #f0f0f0;
+        margin-top: 10px;
+        background-position: center;
+        background-size: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        text-align: center;
+    }
+    
+    .guidelines-card {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .guidelines-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .guidelines-list {
+        padding-left: 20px;
+    }
+    
+    .guidelines-list li {
+        margin-bottom: 10px;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-team-container">
+    <div class="container">
+        <div class="row">
+            <!-- 指南信息 -->
+            <div class="col-md-4">
+                <div class="guidelines-card">
+                    <h4 class="guidelines-title">
+                        <i class="fas fa-info-circle me-2"></i> 团队创建指南
+                    </h4>
+                    <ul class="guidelines-list">
+                        <li><strong>清晰的目标</strong>：明确描述团队的目标和愿景，吸引志同道合的伙伴。</li>
+                        <li><strong>详细的介绍</strong>：提供完整的团队介绍，让潜在成员了解你们的项目。</li>
+                        <li><strong>明确的需求</strong>：列出所需要的技能和专业知识，帮助筛选合适的成员。</li>
+                        <li><strong>真实的信息</strong>：提供真实的联系方式，方便感兴趣的成员与你沟通。</li>
+                        <li><strong>精美的封面</strong>：上传一张能代表团队理念的封面图，提高吸引力。</li>
+                    </ul>
+                </div>
+                
+                <div class="guidelines-card">
+                    <h4 class="guidelines-title">
+                        <i class="fas fa-lightbulb me-2"></i> 团队运营建议
+                    </h4>
+                    <ul class="guidelines-list">
+                        <li>及时回复加入申请，保持良好的沟通。</li>
+                        <li>定期更新团队进展，保持团队页面活跃。</li>
+                        <li>为新成员提供明确的任务和角色。</li>
+                        <li>建立有效的沟通渠道，如微信群或QQ群。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 表单 -->
+            <div class="col-md-8">
+                <div class="form-card">
+                    <h3 class="form-title">创建新团队</h3>
+                    
+                    <form method="post" enctype="multipart/form-data" id="createTeamForm">
+                        <!-- 团队名称 -->
+                        <div class="mb-3">
+                            <label for="teamName" class="form-label">团队名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="teamName" name="name" required maxlength="50">
+                            <div class="form-help-text mt-1">起一个独特而有吸引力的名称，不超过50个字符</div>
+                        </div>
+                        
+                        <!-- 团队类型 -->
+                        <div class="mb-3">
+                            <label for="teamType" class="form-label">团队类型 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="teamType" name="team_type" required>
+                                <option value="" selected disabled>选择团队类型</option>
+                                <option value="project">项目团队</option>
+                                <option value="startup">创业团队</option>
+                                <option value="competition">比赛团队</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 团队简介 -->
+                        <div class="mb-3">
+                            <label for="teamDescription" class="form-label">团队简介 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="teamDescription" name="description" rows="3" required maxlength="200"></textarea>
+                            <div class="form-help-text mt-1">简要描述团队的目标和方向，不超过200个字符</div>
+                        </div>
+                        
+                        <!-- 团队详情 -->
+                        <div class="mb-3">
+                            <label for="teamContent" class="form-label">团队详情 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="teamContent" name="content" rows="6" required></textarea>
+                            <div class="form-help-text mt-1">详细介绍团队背景、目标、计划等，支持HTML格式</div>
+                        </div>
+                        
+                        <!-- 所需技能 -->
+                        <div class="mb-3">
+                            <label for="requiredSkills" class="form-label">所需技能 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="requiredSkills" name="required_skills" required>
+                            <div class="form-help-text mt-1">列出团队所需的技能，多个技能用逗号或顿号分隔</div>
+                        </div>
+                        
+                        <!-- 团队封面 -->
+                        <div class="mb-3">
+                            <label for="teamImage" class="form-label">团队封面</label>
+                            <input type="file" class="form-control" id="teamImage" name="image" accept="image/*">
+                            <div class="form-help-text mt-1">推荐尺寸：800x450像素，最大2MB</div>
+                            <div class="image-preview" id="imagePreview">
+                                <div>图片预览区域</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 最大成员人数 -->
+                        <div class="mb-3">
+                            <label for="maxMembers" class="form-label">最大成员人数 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="maxMembers" name="max_members" min="2" max="50" value="5" required>
+                            <div class="form-help-text mt-1">设置团队最大人数，范围2-50人</div>
+                        </div>
+                        
+                        <!-- 联系方式 -->
+                        <div class="mb-3">
+                            <label for="contactInfo" class="form-label">联系方式 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="contactInfo" name="contact_info" rows="3" required></textarea>
+                            <div class="form-help-text mt-1">提供可以联系到你的方式，如邮箱、微信等</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">创建团队</button>
+                            <a href="{{ url_for('team.index') }}" class="btn btn-outline-secondary">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 图片预览
+        $('#teamImage').change(function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview').css('background-image', `url(${e.target.result})`);
+                    $('#imagePreview').html('');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#imagePreview').css('background-image', 'none');
+                $('#imagePreview').html('<div>图片预览区域</div>');
+            }
+        });
+        
+        // 表单验证
+        $('#createTeamForm').submit(function(event) {
+            let isValid = true;
+            
+            // 验证团队名称
+            const teamName = $('#teamName').val().trim();
+            if (teamName.length < 2) {
+                alert('团队名称至少需要2个字符');
+                isValid = false;
+            }
+            
+            // 验证团队类型
+            if (!$('#teamType').val()) {
+                alert('请选择团队类型');
+                isValid = false;
+            }
+            
+            // 验证团队简介
+            const description = $('#teamDescription').val().trim();
+            if (description.length < 10) {
+                alert('团队简介至少需要10个字符');
+                isValid = false;
+            }
+            
+            // 验证团队详情
+            const content = $('#teamContent').val().trim();
+            if (content.length < 50) {
+                alert('团队详情至少需要50个字符');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %} 

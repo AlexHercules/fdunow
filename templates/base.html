@@ -10,35 +10,69 @@
 <body>
     <nav class="navbar">
         <div class="navbar-brand">
-            <a href="{{ url_for('index') }}" class="logo">校园众创平台</a>
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/mtx-logo.png') }}" alt="MTX Logo" class="logo-img">
+                <span>校园众创平台</span>
+            </a>
         </div>
         
         <div class="navbar-menu">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}">功能中心</a>
-                <a href="#">个人资料</a>
-                <a href="#">消息</a>
-                <a href="{{ url_for('logout') }}">退出登录</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">登录</a>
-                <a href="{{ url_for('register') }}">注册</a>
-                <a href="#about">关于我们</a>
-                <a href="#contact">联系我们</a>
-            {% endif %}
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('index') }}">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/crowdfunding' in request.path %}active{% endif %}" href="{{ url_for('crowdfunding.index') }}">众创项目</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/team' in request.path %}active{% endif %}" href="{{ url_for('team.index') }}">找队友</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">创意集市</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">关于我们</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#">个人中心</a></li>
+                        <li><a class="dropdown-item" href="#">我的项目</a></li>
+                        <li><a class="dropdown-item" href="#">我的团队</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">退出登录</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('auth.login') }}">登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary text-white px-3" href="{{ url_for('auth.register') }}">注册</a>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </nav>
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
+    <div class="container">
+        <!-- 显示闪现消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-    
-    {% block content %}{% endblock %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
     
     <footer>
         <div class="footer-content">

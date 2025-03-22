@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}创建众筹项目 - 校园众创平台{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .create-project-container {
+        padding: 50px 0;
+    }
+    .form-container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        padding: 30px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #333;
+        text-align: center;
+    }
+    .form-description {
+        color: #666;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    .form-control:focus {
+        border-color: #4285f4;
+        outline: none;
+    }
+    textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+    }
+    .btn-submit {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+    }
+    .btn-submit:hover {
+        background-color: #3367d6;
+    }
+    .error-message {
+        color: #d32f2f;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .hint {
+        color: #666;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        border: 1px dashed #ddd;
+        border-radius: 5px;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .image-preview img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+    .image-preview-placeholder {
+        color: #999;
+        font-size: 14px;
+    }
+    .required-field::after {
+        content: "*";
+        color: #d32f2f;
+        margin-left: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-project-container">
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title">创建众筹项目</h1>
+            <p class="form-description">发布你的创意，获得支持与资金，将想法变成现实</p>
+            
+            <form method="POST" action="{{ url_for('crowdfunding.create_project') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title" class="form-label required-field">项目标题</label>
+                    <input type="text" id="title" name="title" class="form-control" required placeholder="输入一个简短而有吸引力的标题">
+                    <div class="hint">一个好的标题能吸引更多关注（50字以内）</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label required-field">项目简介</label>
+                    <textarea id="description" name="description" class="form-control" required placeholder="简单描述你的项目，这将显示在项目列表中"></textarea>
+                    <div class="hint">用简明的语言概括项目核心（200字以内）</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content" class="form-label required-field">项目详情</label>
+                    <textarea id="content" name="content" class="form-control" required placeholder="详细介绍你的项目，包括背景、目标、特色、团队等"></textarea>
+                    <div class="hint">详细描述项目的各个方面，让支持者充分了解（支持基本HTML格式）</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image" class="form-label required-field">项目封面图</label>
+                    <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
+                    <div class="image-preview" id="image-preview">
+                        <div class="image-preview-placeholder">预览图将显示在这里</div>
+                    </div>
+                    <div class="hint">上传一张高质量的图片作为项目封面（推荐尺寸：1200x800像素）</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="target_amount" class="form-label required-field">目标金额（元）</label>
+                    <input type="number" id="target_amount" name="target_amount" class="form-control" required min="100" placeholder="设置你的筹款目标金额">
+                    <div class="hint">设定一个合理的目标金额，既能满足项目需求，又容易达成</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end_date" class="form-label required-field">截止日期</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" required>
+                    <div class="hint">设置一个合理的众筹截止日期，建议在30-60天内</div>
+                </div>
+                
+                <button type="submit" class="btn-submit">发布项目</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 图片预览功能
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('image-preview');
+        
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="项目封面预览">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.innerHTML = '<div class="image-preview-placeholder">预览图将显示在这里</div>';
+            }
+        });
+        
+        // 表单验证
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // 标题验证
+            const title = document.getElementById('title').value;
+            if (!title || title.length > 50) {
+                isValid = false;
+                alert('项目标题不能为空且不能超过50个字符');
+            }
+            
+            // 简介验证
+            const description = document.getElementById('description').value;
+            if (!description || description.length > 200) {
+                isValid = false;
+                alert('项目简介不能为空且不能超过200个字符');
+            }
+            
+            // 目标金额验证
+            const targetAmount = document.getElementById('target_amount').value;
+            if (!targetAmount || targetAmount < 100) {
+                isValid = false;
+                alert('目标金额不能小于100元');
+            }
+            
+            // 截止日期验证
+            const endDate = new Date(document.getElementById('end_date').value);
+            const today = new Date();
+            const minEndDate = new Date();
+            minEndDate.setDate(today.getDate() + 7);
+            
+            if (!endDate || endDate < minEndDate) {
+                isValid = false;
+                alert('截止日期至少需要设置为7天后');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,23 +1,25 @@
 """
-测试数据模型的基本功能和关系
+测试数据模型
 """
 import pytest
-from app import app
+from application import app
 from models import db, User, Project, Team, ProjectCategory, TeamType
 from flask import Flask
 
 @pytest.fixture
-def app_context():
-    """设置应用上下文和内存数据库"""
+def client():
+    """创建测试客户端"""
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    with app.app_context():
-        db.create_all()
-        yield
+    
+    with app.test_client() as client:
+        with app.app_context():
+            db.create_all()
+            yield client
         db.session.remove()
         db.drop_all()
 
-def test_user_model(app_context):
+def test_user_model(client):
     """测试用户模型的基本功能"""
     # 创建测试用户
     user = User(username='testuser', email='test@example.com')
@@ -32,7 +34,7 @@ def test_user_model(app_context):
     assert saved_user.check_password('password123') == True
     assert saved_user.check_password('wrongpassword') == False
 
-def test_project_model(app_context):
+def test_project_model(client):
     """测试项目模型的基本功能"""
     # 创建测试用户
     user = User(username='projectcreator', email='creator@example.com')
@@ -57,7 +59,7 @@ def test_project_model(app_context):
     assert saved_project.category == ProjectCategory.TECH
     assert saved_project.creator_id == user.id
 
-def test_team_model(app_context):
+def test_team_model(client):
     """测试团队模型的基本功能"""
     # 创建测试用户
     user = User(username='teamcreator', email='teamcreator@example.com')

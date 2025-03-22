@@ -1,127 +1,183 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}众筹项目 - 校园众创平台{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .projects-container {
+        padding: 50px 0;
+    }
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        margin-top: 30px;
+    }
+    .project-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .project-card:hover {
+        transform: translateY(-10px);
+    }
+    .project-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+    .project-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .project-content {
+        padding: 20px;
+    }
+    .project-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .project-description {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .progress-container {
+        margin-bottom: 15px;
+    }
+    .progress-bar {
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background-color: #4285f4;
+    }
+    .project-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+    .current-amount {
+        color: #4285f4;
+        font-weight: 600;
+    }
+    .target-amount {
+        color: #666;
+    }
+    .end-date {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-primary {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .btn-outline {
+        background-color: transparent;
+        color: #4285f4;
+        border: 1px solid #4285f4;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .new-project-button {
+        text-align: center;
+        margin-top: 30px;
+    }
+    @media (max-width: 992px) {
+        .projects-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 768px) {
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- 页面标题 -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="display-5 fw-bold">众筹项目</h1>
-            <p class="lead">发布你的创意，获得支持与验证，一键组建团队。</p>
+<div class="projects-container">
+    <div class="container">
+        <div class="section-header">
+            <h1>众筹项目</h1>
+            <p>发现创新项目，支持校园创业者实现梦想</p>
         </div>
-        <div class="col-md-4 text-end align-self-center">
-            <a href="{{ url_for('crowdfunding.create_project') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle me-1"></i>发布项目
-            </a>
-        </div>
-    </div>
-
-    <!-- 筛选器和排序 -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" action="{{ url_for('crowdfunding.index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label for="category" class="form-label">项目分类</label>
-                    <select class="form-select" id="category" name="category">
-                        <option value="all" {% if current_category == 'all' %}selected{% endif %}>全部分类</option>
-                        {% for category in categories %}
-                        <option value="{{ category.name }}" {% if current_category == category.name %}selected{% endif %}>{{ category.value }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="sort_by" class="form-label">排序方式</label>
-                    <select class="form-select" id="sort_by" name="sort_by">
-                        <option value="latest" {% if current_sort == 'latest' %}selected{% endif %}>最新发布</option>
-                        <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>最多点赞</option>
-                        <option value="funding" {% if current_sort == 'funding' %}selected{% endif %}>筹资金额</option>
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter me-1"></i>应用筛选
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 项目列表 -->
-    <div class="row">
-        {% if projects %}
+        
+        <div class="projects-grid">
             {% for project in projects %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 project-card shadow-sm">
-                        {% if project.image_url %}
-                            <img src="{{ project.image_url }}" class="card-img-top" alt="{{ project.title }}">
-                        {% else %}
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="fas fa-image fa-3x text-muted"></i>
-                            </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ project.title }}</h5>
-                            <p class="card-text text-muted mb-2">
-                                <small>
-                                    <i class="fas fa-tag me-1"></i>{{ project.category.value }}
-                                    <span class="mx-2">|</span>
-                                    <i class="fas fa-thumbs-up me-1"></i>{{ project.likes_count }} 个点赞
-                                </small>
-                            </p>
-                            <p class="card-text">{{ project.description[:100] }}{% if project.description|length > 100 %}...{% endif %}</p>
-                            
-                            {% if project.target_amount > 0 %}
-                                <div class="progress mb-2" style="height: 8px;">
-                                    {% set progress = (project.current_amount / project.target_amount * 100)|int %}
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-3">
-                                    <small class="text-muted">已筹: ¥{{ project.current_amount }}</small>
-                                    <small class="text-muted">目标: ¥{{ project.target_amount }}</small>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="card-footer bg-white d-flex justify-content-between">
-                            <a href="{{ url_for('crowdfunding.project_detail', project_id=project.id) }}" class="btn btn-sm btn-outline-primary">查看详情</a>
-                            <small class="text-muted align-self-center">{{ project.created_at.strftime('%Y-%m-%d') }}</small>
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="{{ url_for('static', filename='images/' + project.image) }}" alt="{{ project.title }}">
+                </div>
+                <div class="project-content">
+                    <h3 class="project-title">{{ project.title }}</h3>
+                    <p class="project-description">{{ project.description }}</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: {{ (project.current_amount / project.target_amount * 100) | round }}%;"></div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info text-center py-5">
-                    <i class="fas fa-info-circle fa-3x mb-3"></i>
-                    <h4>暂无项目</h4>
-                    <p>当前没有符合条件的众筹项目，您可以尝试调整筛选条件或者发布一个新项目。</p>
-                    <a href="{{ url_for('crowdfunding.create_project') }}" class="btn btn-primary mt-2">发布我的项目</a>
+                    
+                    <div class="project-stats">
+                        <span class="current-amount">¥{{ project.current_amount }}</span>
+                        <span class="target-amount">目标: ¥{{ project.target_amount }}</span>
+                    </div>
+                    
+                    <p class="end-date">截止日期: {{ project.end_date }}</p>
+                    
+                    <div class="action-buttons">
+                        <a href="{{ url_for('crowdfunding.project_detail', project_id=project.id) }}" class="btn-primary">查看详情</a>
+                        <a href="#" class="btn-outline donate-btn" data-project-id="{{ project.id }}">支持项目</a>
+                    </div>
                 </div>
             </div>
-        {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div class="new-project-button">
+            <a href="{{ url_for('crowdfunding.create_project') }}" class="btn-primary">发起新项目</a>
+        </div>
     </div>
-
-    <!-- 分页 -->
-    <nav aria-label="页面导航" class="my-4">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-                <a class="page-link" href="#">下一页</a>
-            </li>
-        </ul>
-    </nav>
 </div>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
 <script>
-    $(document).ready(function() {
-        // 自动提交表单当选择改变时
-        $('#category, #sort_by').change(function() {
-            $(this).closest('form').submit();
+    document.addEventListener('DOMContentLoaded', function() {
+        // 支持项目按钮点击事件
+        const donateButtons = document.querySelectorAll('.donate-btn');
+        donateButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const projectId = this.getAttribute('data-project-id');
+                // 这里可以打开一个捐款模态框
+                alert(`支持项目功能将在后续版本中实现，项目ID: ${projectId}`);
+            });
         });
     });
 </script>

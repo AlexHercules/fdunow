@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}智能校园导航系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    
+    .project-header {
+        display: flex;
+        margin-bottom: 30px;
+    }
+    
+    .project-image {
+        width: 45%;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .project-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    
+    .project-info {
+        width: 50%;
+        padding-left: 40px;
+    }
+    
+    .project-info h1 {
+        font-size: 32px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .project-info .team {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .project-info .team img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    
+    .project-info .description {
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    
+    .project-info .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        background-color: #f5f7fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .project-info .stat {
+        text-align: center;
+    }
+    
+    .project-info .stat .number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .project-info .stat .label {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .project-info .actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .project-content {
+        margin-top: 40px;
+    }
+    
+    .content-tabs {
+        display: flex;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+    }
+    
+    .content-tabs .tab {
+        padding: 10px 20px;
+        margin-right: 10px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .content-tabs .tab.active {
+        border-bottom-color: #4a6fff;
+        color: #4a6fff;
+    }
+    
+    .tab-content {
+        padding: 20px 0;
+    }
+    
+    .tab-pane {
+        display: none;
+    }
+    
+    .tab-pane.active {
+        display: block;
+    }
+    
+    .tab-pane h3 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .tab-pane p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+        color: #555;
+    }
+    
+    .tab-pane img {
+        max-width: 100%;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .tech-badge {
+        background-color: #eef2ff;
+        color: #4a6fff;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+    
+    .timeline {
+        margin-top: 20px;
+    }
+    
+    .timeline-item {
+        border-left: 2px solid #eee;
+        padding-left: 20px;
+        padding-bottom: 20px;
+        position: relative;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #4a6fff;
+    }
+    
+    .timeline-date {
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-desc {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .team-members {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .team-member {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+    
+    .team-member img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+    
+    .team-member .name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .team-member .role {
+        font-size: 14px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="project-container">
+    <div class="project-header">
+        <div class="project-image">
+            <img src="{{ url_for('static', filename='images/project1.jpg') }}" alt="智能校园导航系统">
+        </div>
+        <div class="project-info">
+            <h1>智能校园导航系统</h1>
+            <div class="team">
+                <img src="{{ url_for('static', filename='images/team1.jpg') }}" alt="团队图标">
+                <span>复旦先锋团队</span>
+            </div>
+            <div class="description">
+                <p>基于AR技术的校园导航解决方案，帮助新生和访客快速找到目的地，提供沉浸式校园探索体验。</p>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="number">92%</div>
+                    <div class="label">进度</div>
+                </div>
+                <div class="stat">
+                    <div class="number">150+</div>
+                    <div class="label">支持者</div>
+                </div>
+                <div class="stat">
+                    <div class="number">¥16,500</div>
+                    <div class="label">已筹资金</div>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="#" class="btn btn-primary">支持项目</a>
+                <a href="#" class="btn btn-outline">联系团队</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="project-content">
+        <div class="content-tabs">
+            <div class="tab active" data-tab="overview">项目概述</div>
+            <div class="tab" data-tab="feature">功能特点</div>
+            <div class="tab" data-tab="tech">技术架构</div>
+            <div class="tab" data-tab="team">团队介绍</div>
+            <div class="tab" data-tab="progress">进展历程</div>
+        </div>
+        
+        <div class="tab-content">
+            <div class="tab-pane active" id="overview">
+                <h3>项目背景</h3>
+                <p>校园导航一直是新生和访客面临的挑战。传统的纸质地图或手机地图应用缺乏针对校园场景的优化，难以提供精准的室内导航和沉浸式体验。我们的智能校园导航系统结合AR技术，为用户提供直观、交互式的导航体验。</p>
+                
+                <img src="{{ url_for('static', filename='images/project1-detail.jpg') }}" alt="项目详情">
+                
+                <h3>解决的问题</h3>
+                <p>1. <strong>新生迷路问题</strong>：新生入学时常常面临找不到教室、图书馆、食堂等场所的困扰。</p>
+                <p>2. <strong>访客体验提升</strong>：校外访客参观校园缺乏引导，难以全面了解校园文化和历史。</p>
+                <p>3. <strong>特殊活动引导</strong>：开放日、毕业典礼等特殊活动时，大量外来人员导航需求集中。</p>
+                
+                <h3>项目价值</h3>
+                <p>通过智能校园导航系统，我们为用户提供精准导航、虚拟校园漫游、历史文化探索等多样化功能，提升校园体验，展示校园魅力，同时为学校智慧校园建设贡献力量。</p>
+            </div>
+            
+            <div class="tab-pane" id="feature">
+                <h3>核心功能</h3>
+                <p><strong>AR实景导航</strong>：通过手机摄像头，在真实场景中叠加导航路线和信息提示，直观显示行进方向。</p>
+                <img src="{{ url_for('static', filename='images/ar-nav.jpg') }}" alt="AR导航">
+                
+                <p><strong>精准室内导航</strong>：基于蓝牙信标和Wi-Fi定位技术，实现图书馆、教学楼等大型建筑内的精准导航。</p>
+                
+                <p><strong>校园文化探索</strong>：结合AR技术，在校园地标处提供历史文化介绍，增强文化传承。</p>
+                
+                <p><strong>智能路线规划</strong>：根据用户需求和实时人流数据，推荐最优路线，避开拥堵区域。</p>
+                
+                <p><strong>虚拟校园漫游</strong>：通过3D建模和全景技术，提供虚拟校园游览体验，特别适合远程访问。</p>
+                
+                <h3>使用场景</h3>
+                <p>1. 新生入学引导：帮助新生熟悉校园环境，快速适应大学生活。</p>
+                <p>2. 校园开放日：为来访家长和潜在学生提供沉浸式校园体验。</p>
+                <p>3. 日常教学活动：帮助学生快速定位上课地点，避免迟到。</p>
+                <p>4. 校园文化传承：通过AR展示校史，增强师生对学校的认同感。</p>
+            </div>
+            
+            <div class="tab-pane" id="tech">
+                <h3>技术架构</h3>
+                <p>智能校园导航系统采用前后端分离架构，结合AR技术、室内定位、地图服务等多种技术，构建全面的导航解决方案。</p>
+                
+                <img src="{{ url_for('static', filename='images/tech-architecture.jpg') }}" alt="技术架构">
+                
+                <h3>关键技术</h3>
+                <p><strong>AR框架</strong>：使用ARCore/ARKit实现AR功能，提供精准的虚拟内容叠加。</p>
+                <p><strong>室内定位</strong>：结合蓝牙信标、Wi-Fi指纹和视觉SLAM技术，实现高精度室内定位。</p>
+                <p><strong>3D建模</strong>：利用Unity3D构建校园虚拟模型，实现虚拟漫游功能。</p>
+                <p><strong>路径规划</strong>：基于A*算法和实时数据，提供智能路线推荐。</p>
+                
+                <div class="tech-stack">
+                    <span class="tech-badge">Flutter</span>
+                    <span class="tech-badge">ARCore</span>
+                    <span class="tech-badge">Unity3D</span>
+                    <span class="tech-badge">Spring Boot</span>
+                    <span class="tech-badge">MongoDB</span>
+                    <span class="tech-badge">Redis</span>
+                    <span class="tech-badge">Docker</span>
+                </div>
+            </div>
+            
+            <div class="tab-pane" id="team">
+                <h3>团队介绍</h3>
+                <p>复旦先锋团队由来自计算机科学、软件工程、设计艺术等专业的学生组成，致力于解决校园生活中的实际问题。</p>
+                
+                <div class="team-members">
+                    <div class="team-member">
+                        <img src="{{ url_for('static', filename='images/member1.jpg') }}" alt="团队成员1">
+                        <div class="name">李明</div>
+                        <div class="role">项目负责人 / 技术架构师</div>
+                    </div>
+                    <div class="team-member">
+                        <img src="{{ url_for('static', filename='images/member2.jpg') }}" alt="团队成员2">
+                        <div class="name">张华</div>
+                        <div class="role">AR开发工程师</div>
+                    </div>
+                    <div class="team-member">
+                        <img src="{{ url_for('static', filename='images/member3.jpg') }}" alt="团队成员3">
+                        <div class="name">王芳</div>
+                        <div class="role">UI/UX设计师</div>
+                    </div>
+                    <div class="team-member">
+                        <img src="{{ url_for('static', filename='images/member4.jpg') }}" alt="团队成员4">
+                        <div class="name">赵强</div>
+                        <div class="role">后端开发工程师</div>
+                    </div>
+                </div>
+                
+                <h3>团队愿景</h3>
+                <p>我们希望通过技术创新，改善校园生活体验，推动智慧校园建设，并将成功经验推广到其他高校和公共场所。</p>
+            </div>
+            
+            <div class="tab-pane" id="progress">
+                <h3>项目进展</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">2023年3月</div>
+                        <div class="timeline-title">项目立项</div>
+                        <div class="timeline-desc">完成项目需求分析和可行性研究，确定技术路线。</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2023年5月</div>
+                        <div class="timeline-title">原型开发</div>
+                        <div class="timeline-desc">完成系统原型设计和核心功能模块开发。</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2023年7月</div>
+                        <div class="timeline-title">校园测绘</div>
+                        <div class="timeline-desc">完成校园地图数据采集和3D建模工作。</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2023年9月</div>
+                        <div class="timeline-title">内测发布</div>
+                        <div class="timeline-desc">在小范围用户中进行内测，收集反馈意见。</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2023年11月</div>
+                        <div class="timeline-title">功能优化</div>
+                        <div class="timeline-desc">根据测试反馈，优化用户体验和系统性能。</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2024年1月</div>
+                        <div class="timeline-title">公测准备</div>
+                        <div class="timeline-desc">准备全校范围内的公测，完善配套文档和支持服务。</div>
+                    </div>
+                </div>
+                
+                <h3>下一步计划</h3>
+                <p>1. 完成校园全覆盖的蓝牙信标部署，提升室内定位精度。</p>
+                <p>2. 增加社交功能，支持用户分享校园探索体验。</p>
+                <p>3. 开发管理员后台，支持学校对导航内容的动态管理。</p>
+                <p>4. 优化AR渲染性能，降低设备功耗。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 标签页切换功能
+        const tabs = document.querySelectorAll('.tab');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有标签页和内容区域的激活状态
+                tabs.forEach(t => t.classList.remove('active'));
+                tabPanes.forEach(p => p.classList.remove('active'));
+                
+                // 激活当前标签页
+                this.classList.add('active');
+                
+                // 激活对应的内容区域
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %} 

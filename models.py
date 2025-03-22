@@ -1,11 +1,19 @@
+"""
+根目录下的models.py文件，包含所有数据库模型
+注意：此文件与app/models.py不同，是项目的主数据模型文件
+
+如果遇到错误"could not find table 'user' with which to generate a foreign key"，
+可能是因为User类的__tablename__设置为'users'，而外键引用了'user.id'。
+确保表名称一致。
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
 import enum
-
-# 初始化SQLAlchemy
-db = SQLAlchemy()
+from application import db
+import uuid
 
 # 定义团队成员关系表（多对多）
 team_members = db.Table('team_members',
@@ -18,14 +26,14 @@ team_members = db.Table('team_members',
 # 定义用户收藏项目关系表（多对多）
 user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('project_id', db.Integer, db.ForeignKey('project.id'), primary_key=True),
+    db.Column('project_id', db.Integer, db.ForeignKey('crowdfunding_project.id'), primary_key=True),
     db.Column('favorite_time', db.DateTime, default=datetime.utcnow)
 )
 
 # 定义用户点赞项目关系表（多对多）
 user_likes = db.Table('user_likes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('project_id', db.Integer, db.ForeignKey('project.id'), primary_key=True),
+    db.Column('project_id', db.Integer, db.ForeignKey('crowdfunding_project.id'), primary_key=True),
     db.Column('like_time', db.DateTime, default=datetime.utcnow)
 )
 
@@ -61,6 +69,9 @@ class TeamType(enum.Enum):
 
 # 用户模型
 class User(UserMixin, db.Model):
+    """用户模型"""
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     email = db.Column(db.String(120), unique=True, index=True)
@@ -72,13 +83,14 @@ class User(UserMixin, db.Model):
     grade = db.Column(db.String(20))
     skills = db.Column(db.Text)
     interests = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 关系
-    projects_created = db.relationship('Project', backref='creator', lazy='dynamic')
+    projects_created = db.relationship('CrowdfundingProject', backref='creator', lazy='dynamic')
     teams_created = db.relationship('Team', backref='creator', lazy='dynamic')
-    donations = db.relationship('Donation', backref='donor', lazy='dynamic')
+    donations = db.relationship('CrowdfundingDonation', backref='donor', lazy='dynamic')
     messages_sent = db.relationship(
         'Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic'
     )
@@ -97,29 +109,59 @@ class User(UserMixin, db.Model):
         return f'<User {self.username}>'
 
 # 项目模型（众筹模块）
-class Project(db.Model):
+class CrowdfundingProject(db.Model):
+    """众筹项目模型"""
+    __tablename__ = 'crowdfunding_project'
+    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), index=True)
+    title = db.Column(db.String(128), index=True)
     description = db.Column(db.Text)
-    category = db.Column(db.Enum(ProjectCategory))
-    target_amount = db.Column(db.Float, default=0)
+    content = db.Column(db.Text)
+    image = db.Column(db.String(256))  # 存储图片路径
+    target_amount = db.Column(db.Float)
     current_amount = db.Column(db.Float, default=0)
     start_date = db.Column(db.DateTime, default=datetime.utcnow)
     end_date = db.Column(db.DateTime)
-    image_url = db.Column(db.String(200))
-    status = db.Column(db.String(20), default='draft')  # draft, active, funded, closed
-    likes_count = db.Column(db.Integer, default=0)
+    status = db.Column(db.String(20), default='active')  # active, funded, closed
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     
     # 关系
-    donations = db.relationship('Donation', backref='project', lazy='dynamic')
-    updates = db.relationship('ProjectUpdate', backref='project', lazy='dynamic')
+    donations = db.relationship('CrowdfundingDonation', backref='project', lazy='dynamic')
+    liked_by = db.relationship('User', secondary=user_likes, lazy='dynamic',
+                              backref=db.backref('liked_projects', lazy='dynamic'))
+    favorited_by = db.relationship('User', secondary=user_favorites, lazy='dynamic',
+                                  backref=db.backref('favorite_projects', lazy='dynamic'))
     
     def __repr__(self):
-        return f'<Project {self.title}>'
+        return f'<CrowdfundingProject {self.title}>'
+    
+    @property
+    def progress(self):
+        """计算众筹进度百分比"""
+        if self.target_amount == 0:
+            return 0
+        return min(100, int(self.current_amount / self.target_amount * 100))
+    
+    @property
+    def days_left(self):
+        """计算剩余天数"""
+        if not self.end_date:
+            return 0
+        delta = self.end_date - datetime.utcnow()
+        return max(0, delta.days)
+    
+    @property
+    def is_active(self):
+        """项目是否处于活跃状态"""
+        return self.status == 'active' and self.end_date > datetime.utcnow()
+    
+    @property
+    def supporters_count(self):
+        """获取支持者数量"""
+        return self.donations.with_entities(db.func.count(db.distinct(CrowdfundingDonation.donor_id))).scalar()
 
 # 团队模型（组队模块）
 class Team(db.Model):
@@ -135,7 +177,7 @@ class Team(db.Model):
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     # 关系
-    projects = db.relationship('Project', backref='team', lazy='dynamic')
+    projects = db.relationship('CrowdfundingProject', backref='team', lazy='dynamic')
     members = db.relationship(
         'User', secondary=team_members,
         primaryjoin=(team_members.c.team_id == id),
@@ -152,23 +194,27 @@ class ProjectUpdate(db.Model):
     title = db.Column(db.String(100))
     content = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('crowdfunding_project.id'))
     
     def __repr__(self):
         return f'<ProjectUpdate {self.title}>'
 
 # 捐赠/资金支持模型
-class Donation(db.Model):
+class CrowdfundingDonation(db.Model):
+    """众筹捐款模型"""
+    __tablename__ = 'crowdfunding_donation'
+    
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float)
-    message = db.Column(db.Text)
+    project_id = db.Column(db.Integer, db.ForeignKey('crowdfunding_project.id'))
+    donor_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    transaction_id = db.Column(db.String(64), unique=True, default=lambda: str(uuid.uuid4()))
+    message = db.Column(db.Text, nullable=True)
     is_anonymous = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    donor_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     
     def __repr__(self):
-        return f'<Donation {self.id} - ¥{self.amount}>'
+        return f'<CrowdfundingDonation {self.amount} for Project {self.project_id}>'
 
 # 消息模型（社交模块）
 class Message(db.Model):
@@ -218,4 +264,21 @@ class AnonymousChatMessage(db.Model):
     chat_id = db.Column(db.Integer, db.ForeignKey('anonymous_chat.id'))
     
     def __repr__(self):
-        return f'<AnonymousChatMessage {self.id}>' 
+        return f'<AnonymousChatMessage {self.id}>'
+
+class VerificationCode(db.Model):
+    """邮箱验证码模型"""
+    __tablename__ = 'verification_codes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), index=True)
+    code = db.Column(db.String(10))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    used = db.Column(db.Boolean, default=False)
+    
+    def is_expired(self):
+        """检查验证码是否已过期（10分钟有效期）"""
+        return datetime.utcnow() > self.created_at + timedelta(minutes=10)
+    
+    def __repr__(self):
+        return f'<VerificationCode {self.code} for {self.email}>' 
