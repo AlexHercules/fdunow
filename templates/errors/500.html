@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}服务器错误{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-code">500</div>
+    <h1 class="error-title">服务器错误</h1>
+    <p class="error-message">很抱歉，服务器出现了问题，我们正在努力修复中</p>
+    <div class="error-actions">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+            <i class="fas fa-home"></i> 返回首页
+        </a>
+        <button onclick="history.back()" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> 返回上一页
+        </button>
+        <button onclick="location.reload()" class="btn btn-info">
+            <i class="fas fa-sync"></i> 重新加载
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}">
+{% endblock %} 

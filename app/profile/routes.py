@@ -5,6 +5,7 @@ import os
 import json
 from datetime import datetime
 from application import db
+from app.utils import save_file, safe_transaction, permission_required, safe_html
 from models import User, Team, CrowdfundingProject, FriendRequest, ChatGroup, GroupMessage, Message
 
 profile = Blueprint('profile', __name__)
@@ -67,22 +68,17 @@ def edit():
         # 处理头像上传
         avatar_file = request.files.get('avatar')
         if avatar_file and avatar_file.filename:
-            # 确保文件名安全
-            filename = secure_filename(avatar_file.filename)
-            # 生成唯一文件名
-            unique_filename = f"{current_user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-            # 设置存储路径
-            avatar_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars', unique_filename)
-            # 确保目录存在
-            os.makedirs(os.path.dirname(avatar_path), exist_ok=True)
-            # 保存文件
-            avatar_file.save(avatar_path)
-            # 更新用户头像路径
-            current_user.avatar = f"/uploads/avatars/{unique_filename}"
+            avatar_path = save_file(
+                file=avatar_file,
+                folder='avatars',
+                prefix=str(current_user.id)
+            )
+            if avatar_path:
+                current_user.avatar = avatar_path
         
         # 更新用户资料
         current_user.name = name
-        current_user.bio = bio
+        current_user.bio = safe_html(bio) if bio else None
         current_user.department = department
         current_user.major = major
         current_user.grade = grade
@@ -98,9 +94,14 @@ def edit():
         current_user.project_visibility = project_visibility
         
         # 保存到数据库
-        db.session.commit()
+        try:
+            db.session.commit()
+            flash('个人资料已更新', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"更新用户资料失败: {str(e)}")
+            flash('更新资料失败，请稍后重试', 'danger')
         
-        flash('个人资料已更新', 'success')
         return redirect(url_for('profile.index'))
     
     return render_template('profile/edit.html')
@@ -143,6 +144,7 @@ def friends():
 
 @profile.route('/friend/request/<int:user_id>', methods=['POST'])
 @login_required
+@safe_transaction
 def send_friend_request(user_id):
     """发送好友请求"""
     # 检查目标用户是否存在
@@ -163,27 +165,21 @@ def send_friend_request(user_id):
         return redirect(url_for('user.detail', user_id=user_id))
     
     # 检查是否已发送过请求
-    existing_request = FriendRequest.query.filter_by(
-        sender_id=current_user.id,
-        receiver_id=user_id,
-        status='pending'
-    ).first()
-    
-    if existing_request:
+    if current_user.has_sent_request_to(user):
         if request.content_type and 'application/json' in request.content_type:
             return jsonify(success=False, message='已经发送过好友请求，等待对方回应')
         flash('已经发送过好友请求，等待对方回应', 'info')
         return redirect(url_for('user.detail', user_id=user_id))
     
     # 检查对方是否已经发送请求给自己
-    reverse_request = FriendRequest.query.filter_by(
-        sender_id=user_id,
-        receiver_id=current_user.id,
-        status='pending'
-    ).first()
-    
-    if reverse_request:
+    if current_user.has_received_request_from(user):
         # 如果对方已经发送请求，则自动接受
+        reverse_request = FriendRequest.query.filter_by(
+            sender_id=user_id,
+            receiver_id=current_user.id,
+            status='pending'
+        ).first()
+        
         reverse_request.status = 'accepted'
         db.session.commit()
         
@@ -202,7 +198,6 @@ def send_friend_request(user_id):
     )
     
     db.session.add(friend_request)
-    db.session.commit()
     
     if request.content_type and 'application/json' in request.content_type:
         return jsonify(success=True, message='好友请求已发送')
@@ -212,6 +207,7 @@ def send_friend_request(user_id):
 
 @profile.route('/friend/accept/<int:request_id>', methods=['POST'])
 @login_required
+@safe_transaction
 def accept_friend_request(request_id):
     """接受好友请求"""
     # 查找好友请求
@@ -229,7 +225,6 @@ def accept_friend_request(request_id):
     
     # 更新请求状态
     friend_request.status = 'accepted'
-    db.session.commit()
     
     # 获取发送者信息
     sender = User.query.get(friend_request.sender_id)
@@ -239,6 +234,7 @@ def accept_friend_request(request_id):
 
 @profile.route('/friend/reject/<int:request_id>', methods=['POST'])
 @login_required
+@safe_transaction
 def reject_friend_request(request_id):
     """拒绝好友请求"""
     # 查找好友请求
@@ -256,24 +252,24 @@ def reject_friend_request(request_id):
     
     # 更新请求状态
     friend_request.status = 'rejected'
-    db.session.commit()
     
     # 获取发送者信息
     sender = User.query.get(friend_request.sender_id)
     
-    flash(f'你已拒绝 {sender.username} 的好友请求', 'info')
+    flash(f'你已拒绝 {sender.username} 的好友请求', 'success')
     return redirect(url_for('profile.friend_requests'))
 
 @profile.route('/friend/cancel/<int:request_id>', methods=['POST'])
 @login_required
+@safe_transaction
 def cancel_friend_request(request_id):
-    """取消已发送的好友请求"""
+    """取消好友请求"""
     # 查找好友请求
     friend_request = FriendRequest.query.get_or_404(request_id)
     
-    # 校验请求是否由当前用户发出
+    # 校验请求是否由当前用户发送
     if friend_request.sender_id != current_user.id:
-        flash('无权取消此请求', 'danger')
+        flash('无权处理此请求', 'danger')
         return redirect(url_for('profile.friend_requests'))
     
     # 校验请求状态
@@ -283,25 +279,25 @@ def cancel_friend_request(request_id):
     
     # 删除请求
     db.session.delete(friend_request)
-    db.session.commit()
     
     # 获取接收者信息
     receiver = User.query.get(friend_request.receiver_id)
     
-    flash(f'你已取消向 {receiver.username} 发送的好友请求', 'info')
+    flash(f'你已取消向 {receiver.username} 发送的好友请求', 'success')
     return redirect(url_for('profile.friend_requests'))
 
 @profile.route('/friend/remove/<int:user_id>', methods=['POST'])
 @login_required
+@safe_transaction
 def remove_friend(user_id):
     """删除好友"""
-    # 检查目标用户是否存在
+    # 检查用户是否存在
     user = User.query.get_or_404(user_id)
     
     # 检查是否是好友
     if not current_user.is_friend(user):
-        flash('你们不是好友，无法删除', 'danger')
-        return redirect(url_for('user.detail', user_id=user_id))
+        flash('该用户不是你的好友', 'danger')
+        return redirect(url_for('profile.friends'))
     
     # 查找并删除好友关系
     friendship = FriendRequest.query.filter(
@@ -311,33 +307,126 @@ def remove_friend(user_id):
     
     if friendship:
         db.session.delete(friendship)
-        db.session.commit()
         
-        flash(f'你已成功删除好友 {user.username}', 'success')
+        flash(f'已将 {user.username} 从好友列表中移除', 'success')
     else:
-        flash('好友关系不存在', 'danger')
+        flash('未找到好友关系', 'danger')
     
-    return redirect(url_for('user.detail', user_id=user_id))
+    return redirect(url_for('profile.friends'))
 
 @profile.route('/friend/requests')
 @login_required
 def friend_requests():
-    """好友请求列表页面"""
-    # 获取收到的好友请求
-    received_requests = current_user.friend_requests_received
+    """好友请求列表"""
+    # 获取收到的请求
+    received_requests = FriendRequest.query.filter_by(
+        receiver_id=current_user.id,
+        status='pending'
+    ).order_by(FriendRequest.created_at.desc()).all()
     
-    # 获取发出的好友请求
-    sent_requests = current_user.friend_requests_sent
+    # 获取发出的请求
+    sent_requests = FriendRequest.query.filter_by(
+        sender_id=current_user.id,
+        status='pending'
+    ).order_by(FriendRequest.created_at.desc()).all()
     
-    return render_template(
-        'profile/friend_requests.html',
-        received_requests=received_requests,
-        sent_requests=sent_requests
-    )
+    return render_template('profile/friend_requests.html',
+                          received_requests=received_requests,
+                          sent_requests=sent_requests)
 
 @profile.route('/messages')
 @login_required
 def messages():
+    """消息中心"""
+    # 查询与当前用户有私聊记录的用户
+    private_chat_users = db.session.query(User).join(
+        Message, 
+        ((Message.sender_id == User.id) & (Message.target_type == 'user') & (Message.target_id == current_user.id)) |
+        ((Message.sender_id == current_user.id) & (Message.target_type == 'user') & (Message.target_id == User.id))
+    ).filter(User.id != current_user.id).distinct().all()
+    
+    # 查询用户所在的群组
+    groups = current_user.groups.all()
+    
+    # 获取每个联系人的最新消息和未读消息数
+    contacts = []
+    
+    # 处理私聊联系人
+    for user in private_chat_users:
+        # 查询最新一条消息
+        latest_message = Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.target_type == 'user') & (Message.target_id == user.id)) |
+            ((Message.sender_id == user.id) & (Message.target_type == 'user') & (Message.target_id == current_user.id))
+        ).order_by(Message.created_at.desc()).first()
+        
+        # 查询未读消息数
+        unread_count = Message.query.filter_by(
+            sender_id=user.id,
+            target_type='user',
+            target_id=current_user.id,
+            is_read=False
+        ).count()
+        
+        contacts.append({
+            'type': 'user',
+            'id': user.id,
+            'name': user.name or user.username,
+            'avatar': user.avatar,
+            'latest_message': latest_message,
+            'unread_count': unread_count,
+            'is_online': user.is_online,
+            'last_seen': user.last_seen
+        })
+    
+    # 处理群组联系人
+    for group in groups:
+        # 查询最新一条消息
+        latest_message = Message.query.filter_by(
+            target_type='group',
+            target_id=group.id
+        ).order_by(Message.created_at.desc()).first()
+        
+        contacts.append({
+            'type': 'group',
+            'id': group.id,
+            'name': group.name,
+            'avatar': group.avatar,
+            'latest_message': latest_message,
+            'member_count': group.member_count
+        })
+    
+    # 按最新消息时间排序
+    contacts.sort(key=lambda x: x.get('latest_message').created_at if x.get('latest_message') else datetime.min, reverse=True)
+    
+    return render_template('profile/messages.html',
+                          contacts=contacts)
+
+@profile.route('/chat/<int:user_id>')
+@login_required
+def chat(user_id):
+    """私聊页面"""
+    # 查询聊天对象
+    user = User.query.get_or_404(user_id)
+    
+    # 获取聊天记录
+    messages = Message.get_private_chat(current_user.id, user_id)
+    
+    # 将未读消息标记为已读
+    Message.mark_as_read(current_user.id, user_id)
+    
+    return render_template('profile/chat.html',
+                          user=user,
+                          messages=messages)
+
+@profile.route('/send_message/<int:user_id>', methods=['POST'])
+@login_required
+@safe_transaction
+def send_message(user_id):
+    """发送私聊消息"""
+    # 检查用户是否存在
+    user = User.query.get_or_404(user_id)
+    
+    # 检查是否向自己发送消息
     """消息列表页面"""
     # 获取与当前用户相关的所有消息
     recent_messages = Message.query.filter(

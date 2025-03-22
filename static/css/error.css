@@ -1,0 +1,75 @@
+/* 错误页面样式 */
+.error-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 600px;
+    margin: 5rem auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-code {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+
+.error-actions .btn {
+    margin: 0 0.5rem;
+    padding: 0.5rem 1.5rem;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .error-container {
+        margin: 2rem auto;
+        padding: 1.5rem;
+    }
+    
+    .error-code {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-actions .btn {
+        margin: 0.5rem;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .error-container {
+        background-color: #343a40;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .error-title {
+        color: #f8f9fa;
+    }
+    
+    .error-message {
+        color: #ced4da;
+    }
+} 

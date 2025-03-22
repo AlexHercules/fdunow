@@ -159,6 +159,15 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+    @property
+    def unread_message_count(self):
+        """获取用户的未读消息数量"""
+        return Message.query.filter_by(
+            target_type='user',
+            target_id=self.id,
+            is_read=False
+        ).count()
+
 # 项目模型（众筹模块）
 class CrowdfundingProject(db.Model):
     """众筹项目模型"""
@@ -269,16 +278,67 @@ class CrowdfundingDonation(db.Model):
 
 # 消息模型（社交模块）
 class Message(db.Model):
+    """统一消息模型，用于私聊和群组消息"""
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text)
-    is_anonymous = db.Column(db.Boolean, default=True)
+    content = db.Column(db.Text, nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # target_type 可以是 'user' 或 'group'
+    target_type = db.Column(db.String(10), nullable=False)
+    target_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    read_at = db.Column(db.DateTime, nullable=True)
+    
+    sender = db.relationship('User', backref='sent_messages')
     
     def __repr__(self):
-        return f'<Message {self.id}>'
+        return f'<Message {self.id}: {self.sender_id} to {self.target_type}_{self.target_id}>'
+    
+    @property
+    def timestamp(self):
+        """返回格式化的时间戳"""
+        return self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    
+    @staticmethod
+    def get_private_chat(user1_id, user2_id, limit=100):
+        """获取两个用户之间的私聊消息"""
+        return Message.query.filter(
+            (
+                (Message.sender_id == user1_id) & 
+                (Message.target_type == 'user') & 
+                (Message.target_id == user2_id)
+            ) | (
+                (Message.sender_id == user2_id) & 
+                (Message.target_type == 'user') & 
+                (Message.target_id == user1_id)
+            )
+        ).order_by(Message.created_at).limit(limit).all()
+    
+    @staticmethod
+    def get_group_chat(group_id, limit=100):
+        """获取群组的聊天消息"""
+        return Message.query.filter_by(
+            target_type='group', 
+            target_id=group_id
+        ).order_by(Message.created_at).limit(limit).all()
+    
+    @staticmethod
+    def mark_as_read(user_id, sender_id):
+        """将来自特定用户的所有未读消息标记为已读"""
+        unread_messages = Message.query.filter_by(
+            sender_id=sender_id,
+            target_type='user',
+            target_id=user_id,
+            is_read=False
+        ).all()
+        
+        current_time = datetime.utcnow()
+        for message in unread_messages:
+            message.is_read = True
+            message.read_at = current_time
+        
+        db.session.commit()
+        return len(unread_messages)
 
 # 引导问题模型（社交模块）
 class GuidingQuestion(db.Model):
@@ -381,6 +441,7 @@ class ChatGroup(db.Model):
         return False
     
     def is_member(self, user):
+        """检查用户是否是群组成员"""
         """检查是否为成员"""
         return self.members.filter(chat_group_members.c.user_id == user.id).count() > 0
     
@@ -394,6 +455,11 @@ class ChatGroup(db.Model):
     
     def __repr__(self):
         return f'<ChatGroup {self.name}>'
+
+    @property
+    def member_count(self):
+        """获取群组成员数量"""
+        return self.members.count()
 
 # 群组消息模型
 class GroupMessage(db.Model):

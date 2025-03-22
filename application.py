@@ -9,6 +9,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 from pathlib import Path
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 # 加载环境变量
 env_path = Path('.') / '.env'
@@ -29,8 +30,10 @@ from app.extensions import db, migrate, login_manager, moment
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
-login_manager.login_message = '请先登录再访问此页面'
+login_manager.login_message = '请先登录才能访问此页面'
+login_manager.login_message_category = 'warning'
 mail = Mail()  # 初始化Mail
+socketio = SocketIO(cors_allowed_origins="*")  # 初始化SocketIO
 
 # 创建应用工厂函数
 def create_app(config_name='default'):
@@ -52,6 +55,7 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     mail.init_app(app)  # 初始化mail
     moment.init_app(app)
+    socketio.init_app(app)  # 初始化SocketIO，允许跨域
     
     # 允许跨域请求
     CORS(app)
@@ -91,6 +95,13 @@ def create_app(config_name='default'):
             app.register_blueprint(profile_blueprint, url_prefix='/profile')
         except ImportError:
             app.logger.warning('无法导入个人中心模块，跳过注册个人中心蓝图')
+        
+        # 实时消息蓝图
+        try:
+            from app.realtime import realtime as realtime_blueprint
+            app.register_blueprint(realtime_blueprint, url_prefix='/realtime')
+        except ImportError:
+            app.logger.warning('无法导入实时消息模块，跳过注册实时消息蓝图')
         
         # 注册邮件蓝图
         from app.mail import mail_bp
@@ -157,14 +168,9 @@ def create_app(config_name='default'):
     def second_hand():
         return render_template('project/second-hand.html')
     
-    # 配置错误处理器
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('404.html'), 404
-    
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        return render_template('500.html'), 500
+    # 注册错误处理
+    from app.errors import register_error_handlers
+    register_error_handlers(app)
     
     # 配置日志（非调试模式）
     if not app.debug and not app.testing:
@@ -172,8 +178,26 @@ def create_app(config_name='default'):
     
     # 注册自定义模板过滤器
     def register_template_filters(app):
-        # 添加自定义过滤器的地方
-        pass
+        """注册自定义模板过滤器"""
+        from app.utils import safe_html
+        
+        @app.template_filter('safe_html')
+        def safe_html_filter(text):
+            return safe_html(text)
+        
+        @app.template_filter('format_datetime')
+        def format_datetime(value, format='%Y-%m-%d %H:%M'):
+            """格式化日期时间"""
+            if value is None:
+                return ""
+            return value.strftime(format)
+        
+        @app.template_filter('format_currency')
+        def format_currency(value):
+            """格式化货币"""
+            if value is None:
+                return "0.00"
+            return "{:,.2f}".format(float(value))
     
     register_template_filters(app)
     
@@ -225,4 +249,4 @@ api.init_app(app)
 
 # 如果作为主程序运行
 if __name__ == '__main__':
-    app.run(debug=True) 
+    socketio.run(app, debug=True) 
