@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}用户列表 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+.users-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.users-header {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.users-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.search-filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    min-width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    font-size: 14px;
+    transition: all 0.3s;
+    background-color: #fff;
+}
+
+.search-input:focus {
+    border-color: #4a89dc;
+    box-shadow: 0 0 0 3px rgba(74, 137, 220, 0.1);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    pointer-events: none;
+}
+
+.filter-dropdown {
+    position: relative;
+}
+
+.filter-btn {
+    padding: 10px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-btn:focus {
+    outline: none;
+    border-color: #4a89dc;
+}
+
+.filter-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    z-index: 10;
+    margin-top: 5px;
+    padding: 8px 0;
+    display: none;
+}
+
+.filter-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filter-option:hover {
+    background-color: #f8f9fa;
+}
+
+.filter-dropdown.active .filter-dropdown-content {
+    display: block;
+}
+
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.user-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.user-info {
+    flex-grow: 1;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.user-meta {
+    font-size: 14px;
+    color: #666;
+}
+
+.user-body {
+    padding: 15px 20px;
+}
+
+.user-bio {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.skill-tag {
+    background-color: #f0f7ff;
+    color: #4a89dc;
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.user-footer {
+    padding: 10px 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #4a89dc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3a70b1;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #4a89dc;
+    border: 1px solid #4a89dc;
+}
+
+.btn-secondary:hover {
+    background-color: #f0f7ff;
+}
+
+.status-badge {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.status-badge.friend {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-badge.pending {
+    background-color: #FFC107;
+    color: white;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    gap: 5px;
+}
+
+.page-link {
+    padding: 8px 12px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.page-link:hover, .page-link.active {
+    background-color: #4a89dc;
+    color: white;
+    border-color: #4a89dc;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-top: 20px;
+}
+
+.empty-icon {
+    font-size: 40px;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.empty-text {
+    font-size: 16px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .users-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .search-filters {
+        width: 100%;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .user-header {
+        padding: 15px;
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+    <div class="users-header">
+        <h1 class="users-title">浏览用户</h1>
+        
+        <div class="search-filters">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="搜索用户..." id="search-input">
+            </div>
+            
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="major-filter-btn">
+                    <span>专业</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="filter-dropdown-content" id="major-filter-content">
+                    <div class="filter-option" data-value="">所有专业</div>
+                    <div class="filter-option" data-value="计算机科学与技术">计算机科学与技术</div>
+                    <div class="filter-option" data-value="软件工程">软件工程</div>
+                    <div class="filter-option" data-value="人工智能">人工智能</div>
+                    <div class="filter-option" data-value="数学">数学</div>
+                    <div class="filter-option" data-value="物理">物理</div>
+                    <div class="filter-option" data-value="化学">化学</div>
+                    <div class="filter-option" data-value="生物">生物</div>
+                    <div class="filter-option" data-value="经济学">经济学</div>
+                    <div class="filter-option" data-value="管理学">管理学</div>
+                </div>
+            </div>
+            
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="skill-filter-btn">
+                    <span>技能</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="filter-dropdown-content" id="skill-filter-content">
+                    <div class="filter-option" data-value="">所有技能</div>
+                    <div class="filter-option" data-value="Python">Python</div>
+                    <div class="filter-option" data-value="Java">Java</div>
+                    <div class="filter-option" data-value="JavaScript">JavaScript</div>
+                    <div class="filter-option" data-value="C++">C++</div>
+                    <div class="filter-option" data-value="设计">设计</div>
+                    <div class="filter-option" data-value="产品">产品</div>
+                    <div class="filter-option" data-value="运营">运营</div>
+                    <div class="filter-option" data-value="市场">市场</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="users-grid">
+        {% for user in users %}
+        <div class="user-card" data-username="{{ user.username }}" data-major="{{ user.major or '' }}" data-skills="{{ user.skills or '' }}">
+            <div class="user-header">
+                <img src="{{ user.avatar or '/static/images/default_avatar.png' }}" alt="{{ user.username }}" class="user-avatar">
+                <div class="user-info">
+                    <div class="user-name">{{ user.username }}</div>
+                    <div class="user-meta">
+                        {{ user.department or '' }} {{ user.major or '' }}
+                        {% if user.grade %}
+                        <span>· {{ user.grade }}级</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="user-body">
+                <div class="user-bio">{{ user.bio or '这个人很懒，还没有填写个人简介...' }}</div>
+                
+                {% if user.skills %}
+                <div class="skill-tags">
+                    {% for skill in user.skills.split(',')[:3] %}
+                    <span class="skill-tag">{{ skill.strip() }}</span>
+                    {% endfor %}
+                    {% if user.skills.split(',')|length > 3 %}
+                    <span class="skill-tag">+{{ user.skills.split(',')|length - 3 }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="user-footer">
+                <div>
+                    {% if user.id != current_user.id %}
+                        {% if current_user.is_friend(user) %}
+                            <span class="status-badge friend">已是好友</span>
+                        {% elif current_user.has_sent_request_to(user) %}
+                            <span class="status-badge pending">请求已发送</span>
+                        {% else %}
+                            <button class="btn btn-primary add-friend-btn" data-user-id="{{ user.id }}">
+                                <i class="fas fa-user-plus"></i> 添加好友
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <span class="status-badge">你自己</span>
+                    {% endif %}
+                </div>
+                
+                <a href="{{ url_for('user.detail', user_id=user.id) }}" class="btn btn-secondary">查看资料</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- 如果没有用户 -->
+    {% if not users %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-users"></i></div>
+        <div class="empty-text">暂无用户数据</div>
+    </div>
+    {% endif %}
+    
+    <!-- 分页 -->
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('user.list', page=pagination.prev_num) }}" class="page-link">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+        
+        {% for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page != pagination.page %}
+                <a href="{{ url_for('user.list', page=page) }}" class="page-link">{{ page }}</a>
+                {% else %}
+                <a href="#" class="page-link active">{{ page }}</a>
+                {% endif %}
+            {% else %}
+                <span class="page-link">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('user.list', page=pagination.next_num) }}" class="page-link">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- 添加好友弹窗 -->
+    <div class="modal fade" id="add-friend-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加好友</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-friend-form">
+                        <input type="hidden" id="friend-user-id" name="user_id">
+                        <div class="mb-3">
+                            <label for="friend-message" class="form-label">附加消息（可选）</label>
+                            <textarea class="form-control" id="friend-message" name="message" rows="3" placeholder="输入想对对方说的话..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="send-friend-request-btn">发送请求</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 搜索功能
+    const searchInput = document.getElementById('search-input');
+    let majorFilter = '';
+    let skillFilter = '';
+    
+    function filterUsers() {
+        const query = searchInput.value.toLowerCase();
+        const userCards = document.querySelectorAll('.user-card');
+        
+        userCards.forEach(card => {
+            const username = card.getAttribute('data-username').toLowerCase();
+            const major = card.getAttribute('data-major').toLowerCase();
+            const skills = card.getAttribute('data-skills').toLowerCase();
+            
+            // 检查所有过滤条件
+            const matchesSearch = username.includes(query);
+            const matchesMajor = !majorFilter || major.includes(majorFilter.toLowerCase());
+            const matchesSkill = !skillFilter || skills.includes(skillFilter.toLowerCase());
+            
+            // 只有同时满足所有过滤条件才显示
+            if (matchesSearch && matchesMajor && matchesSkill) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // 搜索框输入事件
+    searchInput.addEventListener('input', filterUsers);
+    
+    // 专业筛选下拉框
+    const majorFilterBtn = document.getElementById('major-filter-btn');
+    const majorFilterContent = document.getElementById('major-filter-content');
+    const majorOptions = majorFilterContent.querySelectorAll('.filter-option');
+    
+    majorFilterBtn.addEventListener('click', function() {
+        majorFilterContent.parentElement.classList.toggle('active');
+    });
+    
+    majorOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            majorFilter = this.getAttribute('data-value');
+            majorFilterBtn.querySelector('span').textContent = majorFilter || '专业';
+            majorFilterContent.parentElement.classList.remove('active');
+            filterUsers();
+        });
+    });
+    
+    // 技能筛选下拉框
+    const skillFilterBtn = document.getElementById('skill-filter-btn');
+    const skillFilterContent = document.getElementById('skill-filter-content');
+    const skillOptions = skillFilterContent.querySelectorAll('.filter-option');
+    
+    skillFilterBtn.addEventListener('click', function() {
+        skillFilterContent.parentElement.classList.toggle('active');
+    });
+    
+    skillOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            skillFilter = this.getAttribute('data-value');
+            skillFilterBtn.querySelector('span').textContent = skillFilter || '技能';
+            skillFilterContent.parentElement.classList.remove('active');
+            filterUsers();
+        });
+    });
+    
+    // 点击其他地方关闭下拉框
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.filter-dropdown')) {
+            document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
+    });
+    
+    // 添加好友按钮点击事件
+    const addFriendButtons = document.querySelectorAll('.add-friend-btn');
+    const addFriendModal = new bootstrap.Modal(document.getElementById('add-friend-modal'));
+    const friendUserIdInput = document.getElementById('friend-user-id');
+    const sendFriendRequestBtn = document.getElementById('send-friend-request-btn');
+    const addFriendForm = document.getElementById('add-friend-form');
+    
+    addFriendButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            friendUserIdInput.value = userId;
+            addFriendModal.show();
+        });
+    });
+    
+    // 发送好友请求
+    sendFriendRequestBtn.addEventListener('click', function() {
+        const userId = friendUserIdInput.value;
+        const message = document.getElementById('friend-message').value;
+        
+        const formData = new FormData();
+        formData.append('message', message);
+        
+        // 发送好友请求
+        fetch(`/profile/friend/request/${userId}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            if (data && data.success) {
+                // 更新UI，显示已发送状态
+                const button = document.querySelector(`.add-friend-btn[data-user-id="${userId}"]`);
+                const parent = button.parentElement;
+                parent.innerHTML = '<span class="status-badge pending">请求已发送</span>';
+                
+                // 关闭模态框
+                addFriendModal.hide();
+            } else if (data) {
+                alert(data.message || '发送请求失败');
+            }
+        })
+        .catch(error => {
+            console.error('发送好友请求失败:', error);
+            alert('发送请求失败，请稍后重试');
+        });
+    });
+});
+</script>
+{% endblock %} 

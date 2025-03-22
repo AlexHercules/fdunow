@@ -1,12 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}404 - 页面未找到{% endblock %}
+{% block title %}页面未找到{% endblock %}
 
 {% block content %}
-<div class="container text-center py-5">
-    <h1 class="display-1">404</h1>
-    <h2 class="mb-4">页面未找到</h2>
-    <p class="lead mb-4">您访问的页面不存在或已被移除。</p>
-    <a href="{{ url_for('index') }}" class="btn btn-primary">返回首页</a>
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h1>404 - 页面未找到</h1>
+        <p>抱歉，您访问的页面不存在或已被移除。</p>
+        <p>请检查您输入的网址是否正确，或者使用下面的链接导航。</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">返回首页</a>
+            <a href="#" onclick="window.history.back();" class="btn btn-outline">返回上一页</a>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .error-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        max-width: 500px;
+        width: 100%;
+    }
+    
+    .error-icon {
+        font-size: 48px;
+        color: #3498db;
+        margin-bottom: 20px;
+    }
+    
+    .error-card h1 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .error-card p {
+        color: #666;
+        margin-bottom: 10px;
+    }
+    
+    .error-actions {
+        margin-top: 25px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+</style>
 {% endblock %} 

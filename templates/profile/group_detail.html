@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} - 群聊 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+.chat-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+}
+
+.chat-sidebar {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+}
+
+.group-info {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.group-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.group-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.group-description {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.group-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.members-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0 15px;
+}
+
+.members-header {
+    padding: 15px 5px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    top: 0;
+    background: #fff;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 5px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.member-info {
+    flex-grow: 1;
+}
+
+.member-name {
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.member-role {
+    font-size: 12px;
+    color: #888;
+}
+
+.admin-badge {
+    background-color: #4a89dc;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.chat-main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    position: relative;
+    word-break: break-word;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: #4a89dc;
+    color: white;
+    border-bottom-right-radius: 0;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    border-bottom-left-radius: 0;
+}
+
+.message-sender {
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.message-content {
+    line-height: 1.4;
+}
+
+.message-time {
+    font-size: 10px;
+    opacity: 0.7;
+    text-align: right;
+    margin-top: 5px;
+}
+
+.chat-input {
+    padding: 15px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+}
+
+.message-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    font-size: 14px;
+    resize: none;
+    height: 42px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.message-input:focus {
+    border-color: #4a89dc;
+}
+
+.send-button {
+    background-color: #4a89dc;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.send-button:hover {
+    background-color: #3a70b1;
+}
+
+.send-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}
+
+.empty-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+
+.team-link {
+    margin-top: 15px;
+    font-size: 13px;
+}
+
+.team-link a {
+    color: #4a89dc;
+    text-decoration: none;
+}
+
+.team-link a:hover {
+    text-decoration: underline;
+}
+
+.chat-date-separator {
+    text-align: center;
+    position: relative;
+    margin: 15px 0;
+}
+
+.date-text {
+    background: white;
+    padding: 0 10px;
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    color: #888;
+}
+
+.chat-date-separator::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: #eee;
+    z-index: 0;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-sidebar {
+        height: auto;
+        max-height: 300px;
+    }
+    
+    .chat-main {
+        height: calc(100vh - 480px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- 侧边栏：群组信息和成员列表 -->
+    <div class="chat-sidebar">
+        <div class="group-info">
+            <div class="group-header">
+                <img src="{{ group.avatar or '/static/images/default_group.png' }}" alt="{{ group.name }}" class="group-avatar">
+                <h2 class="group-name">{{ group.name }}</h2>
+            </div>
+            <p class="group-description">{{ group.description or '没有描述' }}</p>
+            <div class="group-meta">
+                <i class="fas fa-users"></i> {{ members|length }} 位成员
+                {% if group.created_at %}
+                <span> · 创建于 {{ group.created_at.strftime('%Y-%m-%d') }}</span>
+                {% endif %}
+            </div>
+            
+            {% if group.team %}
+            <div class="team-link">
+                <i class="fas fa-project-diagram"></i> 关联团队：
+                <a href="{{ url_for('team.detail', team_id=group.team.id) }}">{{ group.team.name }}</a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="members-list">
+            <div class="members-header">
+                群成员列表
+            </div>
+            
+            {% for member in members %}
+            <div class="member-item">
+                <img src="{{ member.avatar or '/static/images/default_avatar.png' }}" alt="{{ member.username }}" class="member-avatar">
+                <div class="member-info">
+                    <div class="member-name">
+                        {{ member.username }}
+                        {% if group.get_member_role(member) == 'admin' %}
+                        <span class="admin-badge">管理员</span>
+                        {% endif %}
+                    </div>
+                    <div class="member-role">
+                        {{ member.department or '' }} {{ member.major or '' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- 主内容：聊天消息和输入框 -->
+    <div class="chat-main">
+        <div class="chat-messages" id="chat-messages">
+            {% if messages %}
+                {% set current_date = None %}
+                {% for message in messages %}
+                    {% set message_date = message.created_at.strftime('%Y-%m-%d') %}
+                    {% if current_date != message_date %}
+                        <div class="chat-date-separator">
+                            <span class="date-text">{{ message_date }}</span>
+                        </div>
+                        {% set current_date = message_date %}
+                    {% endif %}
+                    
+                    <div class="message {% if message.sender_id == current_user.id %}sent{% else %}received{% endif %}">
+                        {% if message.sender_id != current_user.id %}
+                        <div class="message-sender">{{ message.sender.username }}</div>
+                        {% endif %}
+                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-time">{{ message.created_at.strftime('%H:%M') }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                    <p>暂无消息，发送第一条消息开始聊天吧！</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="chat-input">
+            <textarea id="message-input" class="message-input" placeholder="输入消息..." rows="1"></textarea>
+            <button id="send-button" class="send-button" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const chatMessages = document.getElementById('chat-messages');
+    
+    // 滚动到底部
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // 初始化时滚动到底部
+    scrollToBottom();
+    
+    // 启用/禁用发送按钮
+    messageInput.addEventListener('input', function() {
+        sendButton.disabled = this.value.trim() === '';
+        
+        // 自动调整文本区域高度
+        this.style.height = 'auto';
+        const newHeight = Math.min(this.scrollHeight, 120);
+        if (newHeight > 42) {
+            this.style.height = newHeight + 'px';
+        } else {
+            this.style.height = '42px';
+        }
+    });
+    
+    // 回车键发送消息
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendButton.disabled) {
+                sendMessage();
+            }
+        }
+    });
+    
+    // 发送按钮点击事件
+    sendButton.addEventListener('click', sendMessage);
+    
+    // 发送消息函数
+    function sendMessage() {
+        const content = messageInput.value.trim();
+        if (!content) return;
+        
+        // 发送消息 AJAX 请求
+        fetch('{{ url_for("profile.send_group_message", group_id=group.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `content=${encodeURIComponent(content)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 添加消息到聊天窗口
+                addMessageToChat(data.message_data);
+                
+                // 清空输入框
+                messageInput.value = '';
+                messageInput.style.height = '42px';
+                sendButton.disabled = true;
+                
+                // 滚动到底部
+                scrollToBottom();
+            } else {
+                alert('发送失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('发送消息出错:', error);
+            alert('发送失败，请稍后重试');
+        });
+    }
+    
+    // 添加消息到聊天界面
+    function addMessageToChat(messageData) {
+        // 检查日期分隔线
+        const today = new Date().toISOString().slice(0, 10);
+        const lastDateSeparator = chatMessages.querySelector('.chat-date-separator:last-child .date-text');
+        
+        // 如果日期与最后一个分隔符不同，添加新的日期分隔符
+        if (!lastDateSeparator || lastDateSeparator.textContent !== today) {
+            const dateSeparator = document.createElement('div');
+            dateSeparator.className = 'chat-date-separator';
+            dateSeparator.innerHTML = `<span class="date-text">${today}</span>`;
+            chatMessages.appendChild(dateSeparator);
+        }
+        
+        // 创建消息元素
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message sent';
+        
+        const messageTime = new Date(messageData.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.innerHTML = `
+            <div class="message-content">${messageData.content}</div>
+            <div class="message-time">${messageTime}</div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+    }
+    
+    // 自动刷新聊天内容（每5秒）
+    function refreshChat() {
+        // 实际项目中可以使用 WebSocket 或 长轮询 实现实时聊天
+        // 这里使用简单的定时刷新作为示例
+        setTimeout(refreshChat, 5000);
+    }
+    
+    // 开始自动刷新
+    refreshChat();
+});
+</script>
+{% endblock %} 

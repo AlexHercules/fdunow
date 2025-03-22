@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}创建群组 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+.create-group-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.create-group-header {
+    margin-bottom: 20px;
+}
+
+.create-group-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.create-group-subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+.form-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #4a89dc;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+}
+
+.required-label::after {
+    content: '*';
+    color: #e74c3c;
+    margin-left: 4px;
+}
+
+.form-tip {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid #f0f0f0;
+    overflow: hidden;
+    position: relative;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #aaa;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #4a89dc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3a70b1;
+}
+
+.btn-primary:disabled {
+    background-color: #a0bfe6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.form-row {
+    display: flex;
+    margin: 0 -10px;
+}
+
+.form-col {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.help-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.help-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.help-text {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.help-tips {
+    margin-top: 15px;
+}
+
+.help-tip-item {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.tip-icon {
+    margin-right: 8px;
+    color: #4a89dc;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-col {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-group-container">
+    <div class="create-group-header">
+        <h1 class="create-group-title">创建群组</h1>
+        <p class="create-group-subtitle">创建一个新的聊天群组，邀请好友或团队成员一起交流</p>
+    </div>
+    
+    <div class="help-card">
+        <h3 class="help-title">创建群组指南</h3>
+        <p class="help-text">群组是一个让多人交流的空间，你可以创建一个与项目相关的群组，或者只是和朋友聊天的小组。</p>
+        
+        <div class="help-tips">
+            <div class="help-tip-item">
+                <span class="tip-icon"><i class="fas fa-check-circle"></i></span>
+                <span>为群组选择一个简单明了的名称，让成员容易找到和识别</span>
+            </div>
+            <div class="help-tip-item">
+                <span class="tip-icon"><i class="fas fa-check-circle"></i></span>
+                <span>添加描述说明群组的用途和规则</span>
+            </div>
+            <div class="help-tip-item">
+                <span class="tip-icon"><i class="fas fa-check-circle"></i></span>
+                <span>如果这是一个团队群组，可以选择关联到你创建的团队</span>
+            </div>
+        </div>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" id="create-group-form">
+        <div class="form-card">
+            <h2 class="section-title">基本信息</h2>
+            
+            <div class="form-row">
+                <div class="form-col" style="flex: 0 0 150px;">
+                    <div class="form-group">
+                        <label for="avatar">群组头像</label>
+                        <div class="avatar-preview">
+                            <div id="avatar-placeholder" class="avatar-placeholder">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <img id="avatar-preview-img" style="display: none;" alt="预览">
+                        </div>
+                        <input type="file" id="avatar" name="avatar" class="form-control" accept="image/*">
+                        <div class="form-tip">可选，最大尺寸: 2MB</div>
+                    </div>
+                </div>
+                
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="name" class="required-label">群组名称</label>
+                        <input type="text" id="name" name="name" class="form-control" required placeholder="输入群组名称" maxlength="30">
+                        <div class="form-tip">最多30个字符</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="team_id">关联团队</label>
+                        <select id="team_id" name="team_id" class="form-control">
+                            <option value="">不关联团队</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-tip">可选，将群组与你创建的团队关联</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">群组描述</label>
+                <textarea id="description" name="description" class="form-control" placeholder="描述一下这个群组的用途或规则..." maxlength="200"></textarea>
+                <div class="form-tip">可选，最多200个字符</div>
+            </div>
+        </div>
+        
+        <div class="btn-container">
+            <a href="{{ url_for('profile.groups') }}" class="btn btn-secondary">取消</a>
+            <button type="submit" class="btn btn-primary" id="submit-btn">创建群组</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 头像预览
+    const avatarInput = document.getElementById('avatar');
+    const avatarPreview = document.getElementById('avatar-preview-img');
+    const avatarPlaceholder = document.getElementById('avatar-placeholder');
+    
+    avatarInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result;
+                avatarPreview.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            avatarPreview.style.display = 'none';
+            avatarPlaceholder.style.display = 'flex';
+        }
+    });
+    
+    // 表单验证
+    const groupForm = document.getElementById('create-group-form');
+    const nameInput = document.getElementById('name');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    function validateForm() {
+        let isValid = true;
+        
+        // 验证群组名称
+        if (!nameInput.value.trim()) {
+            nameInput.style.borderColor = '#e74c3c';
+            isValid = false;
+        } else {
+            nameInput.style.borderColor = '#ddd';
+        }
+        
+        submitBtn.disabled = !isValid;
+        return isValid;
+    }
+    
+    nameInput.addEventListener('input', validateForm);
+    
+    groupForm.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            alert('请填写必填字段');
+        }
+    });
+    
+    // 初始验证
+    validateForm();
+});
+</script>
+{% endblock %} 

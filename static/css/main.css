@@ -44,6 +44,67 @@ a {
     gap: 30px;
 }
 
+/* 添加导航菜单项的样式 */
+.navbar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+}
+
+.nav-item {
+    display: inline-block;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color 0.3s ease;
+    padding: 5px 0;
+    position: relative;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #007DFF;
+}
+
+.nav-link:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background-color: #007DFF;
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover:after, .nav-link.active:after {
+    width: 100%;
+}
+
+/* 修复按钮与导航链接的样式冲突 */
+.nav-link.btn {
+    background-color: #007DFF;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.nav-link.btn:hover {
+    background-color: #0066CC;
+    color: white;
+}
+
+.nav-link.btn:after {
+    display: none;
+}
+
 .navbar-menu a {
     text-decoration: none;
     color: #333;
@@ -509,25 +570,26 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: #f5f5f5;
-    padding-top: 65px;
+    min-height: calc(100vh - 200px);
+    padding: 30px 15px;
+    margin-top: 65px;
 }
 
 .auth-form {
-    width: 100%;
-    max-width: 420px;
-    padding: 40px;
     background-color: #fff;
-    border-radius: 2px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 450px;
 }
 
 .auth-form h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 25px;
     text-align: center;
-    margin-bottom: 30px;
-    color: #000;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .form-group {
@@ -536,9 +598,10 @@ footer {
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    color: #333;
     font-size: 14px;
+    color: #555;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .form-group input[type="text"],
@@ -547,36 +610,39 @@ footer {
     width: 100%;
     padding: 12px 15px;
     border: 1px solid #ddd;
-    border-radius: 2px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
 }
 
 .form-group input:focus {
     border-color: #007DFF;
-    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 125, 255, 0.1);
 }
 
 .remember-me, .terms {
     display: flex;
     align-items: center;
+    margin-bottom: 20px;
     font-size: 14px;
-    color: #666;
+    color: #555;
 }
 
 .remember-me input, .terms input {
-    margin-right: 10px;
+    margin-right: 8px;
 }
 
 .auth-form .btn {
     width: 100%;
     padding: 12px;
-    margin: 20px 0 0;
     font-size: 16px;
+    margin-top: 10px;
 }
 
 .auth-links {
-    margin-top: 30px;
+    margin-top: 20px;
     text-align: center;
     font-size: 14px;
     color: #666;
@@ -589,6 +655,54 @@ footer {
 
 .auth-links a:hover {
     text-decoration: underline;
+}
+
+.verification-group {
+    display: flex;
+    gap: 10px;
+}
+
+.verification-group input {
+    flex: 1;
+}
+
+.verification-group button {
+    white-space: nowrap;
+    min-width: 110px;
+    padding: 12px 15px;
+    font-size: 14px;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
 }
 
 /* Dashboard样式 */

@@ -324,7 +324,7 @@
                     <h4>社交网络</h4>
                     <img src="{{ url_for('static', filename='images/social-preview.jpg') }}" alt="社交网络预览">
                     <p>通过平台与志同道合的伙伴交流，通过匿名聊天功能建立联系，分享创新理念，拓展人脉资源。</p>
-                    <a href="{{ url_for('social.index') }}" class="btn btn-sm btn-outline">立即体验</a>
+                    <a href="{{ url_for('social.index') }}" class="btn btn-sm btn-outline">即将上线</a>
                 </div>
             </div>
             <div class="feature-card">
@@ -338,7 +338,7 @@
                     <h4>支付系统</h4>
                     <img src="{{ url_for('static', filename='images/payment-preview.jpg') }}" alt="支付系统预览">
                     <p>安全可靠的支付系统，支持多种支付方式，确保资金流转透明，为项目提供财务保障。</p>
-                    <a href="{{ url_for('payment.my_donations') }}" class="btn btn-sm btn-outline">立即体验</a>
+                    <a href="#" class="btn btn-sm btn-outline">即将上线</a>
                 </div>
             </div>
         </div>
@@ -357,7 +357,7 @@
                 <div class="project-content">
                     <h3>智能校园导航系统</h3>
                     <p>基于AR技术的校园导航解决方案，帮助新生和访客快速找到目的地</p>
-                    <a href="/project/campus-nav" class="btn btn-text">了解更多 ></a>
+                    <a href="{{ url_for('campus_nav') }}" class="btn btn-text">了解更多 ></a>
                 </div>
             </div>
             <div class="project-card">
@@ -367,7 +367,7 @@
                 <div class="project-content">
                     <h3>校园二手交易平台</h3>
                     <p>为大学生提供安全、便捷的二手物品交易服务，促进资源循环利用</p>
-                    <a href="/project/second-hand" class="btn btn-text">了解更多 ></a>
+                    <a href="{{ url_for('second_hand') }}" class="btn btn-text">了解更多 ></a>
                 </div>
             </div>
             <div class="project-card">
@@ -377,7 +377,7 @@
                 <div class="project-content">
                     <h3>大学生心理健康助手</h3>
                     <p>结合AI技术的心理健康评估与辅导系统，为大学生提供心理支持</p>
-                    <a href="/project/mental-health" class="btn btn-text">了解更多 ></a>
+                    <a href="#" class="btn btn-text">了解更多 ></a>
                 </div>
             </div>
         </div>
@@ -474,7 +474,7 @@
                     </div>
                     <h3>创意分享</h3>
                     <p>分享创新想法，获得反馈和建议</p>
-                    <a href="#" class="btn btn-primary">了解更多</a>
+                    <a href="{{ url_for('social.index') }}" class="btn btn-primary">了解更多</a>
                 </div>
             </div>
         </div>

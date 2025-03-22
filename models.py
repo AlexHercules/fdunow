@@ -45,6 +45,14 @@ friendships = db.Table('friendships',
     db.Column('created_at', db.DateTime, default=datetime.utcnow)
 )
 
+# 定义群组成员关系表
+chat_group_members = db.Table('chat_group_members',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('group_id', db.Integer, db.ForeignKey('chat_group.id'), primary_key=True),
+    db.Column('join_time', db.DateTime, default=datetime.utcnow),
+    db.Column('role', db.String(20), default='member')  # 角色：admin, member
+)
+
 # 项目分类枚举
 class ProjectCategory(enum.Enum):
     TECH = '技术'
@@ -83,9 +91,17 @@ class User(UserMixin, db.Model):
     grade = db.Column(db.String(20))
     skills = db.Column(db.Text)
     interests = db.Column(db.Text)
+    phone = db.Column(db.String(20))
+    personal_website = db.Column(db.String(255))
+    github = db.Column(db.String(255))
+    school = db.Column(db.String(100), default='复旦大学')
+    department = db.Column(db.String(100))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 隐私设置
+    privacy_settings = db.Column(db.Text, default='{"email": "friends", "phone": "private", "projects": "public"}')
     
     # 关系
     projects_created = db.relationship('CrowdfundingProject', backref='creator', lazy='dynamic')
@@ -98,12 +114,47 @@ class User(UserMixin, db.Model):
         'Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic'
     )
     
+    # 好友相关
+    friends = db.relationship(
+        'User', secondary=friendships,
+        primaryjoin=(friendships.c.user_id == id),
+        secondaryjoin=(friendships.c.friend_id == id),
+        backref=db.backref('friended_by', lazy='dynamic'),
+        lazy='dynamic'
+    )
+    
+    # 群组相关
+    groups_created = db.relationship('ChatGroup', backref='creator', lazy='dynamic')
+    
     # 密码处理
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
         
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def add_friend(self, user):
+        """添加好友"""
+        if not self.is_friend(user):
+            self.friends.append(user)
+            return True
+        return False
+    
+    def remove_friend(self, user):
+        """删除好友"""
+        if self.is_friend(user):
+            self.friends.remove(user)
+            return True
+        return False
+    
+    def is_friend(self, user):
+        """检查是否为好友"""
+        return self.friends.filter(friendships.c.friend_id == user.id).count() > 0
+    
+    def update_last_seen(self):
+        """更新最后在线时间"""
+        self.last_seen = datetime.utcnow()
+        db.session.commit()
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -281,4 +332,121 @@ class VerificationCode(db.Model):
         return datetime.utcnow() > self.created_at + timedelta(minutes=10)
     
     def __repr__(self):
-        return f'<VerificationCode {self.code} for {self.email}>' 
+        return f'<VerificationCode {self.code} for {self.email}>'
+
+# 添加群组模型
+class ChatGroup(db.Model):
+    """聊天群组模型"""
+    __tablename__ = 'chat_group'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    avatar = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)  # 关联团队，可为空
+    
+    # 关系
+    members = db.relationship(
+        'User', secondary=chat_group_members,
+        backref=db.backref('groups', lazy='dynamic'),
+        lazy='dynamic'
+    )
+    messages = db.relationship('GroupMessage', backref='group', lazy='dynamic')
+    
+    def add_member(self, user, role='member'):
+        """添加成员"""
+        if not self.is_member(user):
+            assoc = chat_group_members.insert().values(
+                user_id=user.id, 
+                group_id=self.id,
+                role=role
+            )
+            db.session.execute(assoc)
+            db.session.commit()
+            return True
+        return False
+    
+    def remove_member(self, user):
+        """移除成员"""
+        if self.is_member(user):
+            stmt = chat_group_members.delete().where(
+                (chat_group_members.c.user_id == user.id) &
+                (chat_group_members.c.group_id == self.id)
+            )
+            db.session.execute(stmt)
+            db.session.commit()
+            return True
+        return False
+    
+    def is_member(self, user):
+        """检查是否为成员"""
+        return self.members.filter(chat_group_members.c.user_id == user.id).count() > 0
+    
+    def get_member_role(self, user):
+        """获取成员角色"""
+        result = db.session.query(chat_group_members.c.role).filter(
+            chat_group_members.c.user_id == user.id,
+            chat_group_members.c.group_id == self.id
+        ).first()
+        return result[0] if result else None
+    
+    def __repr__(self):
+        return f'<ChatGroup {self.name}>'
+
+# 群组消息模型
+class GroupMessage(db.Model):
+    """群聊消息模型"""
+    __tablename__ = 'group_message'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id = db.Column(db.Integer, db.ForeignKey('chat_group.id'))
+    
+    # 关系
+    sender = db.relationship('User', backref='group_messages_sent')
+    
+    def __repr__(self):
+        return f'<GroupMessage {self.id}>'
+
+# 好友请求模型
+class FriendRequest(db.Model):
+    """好友请求模型"""
+    __tablename__ = 'friend_request'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    message = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 关系
+    from_user = db.relationship('User', foreign_keys=[from_user_id], backref='friend_requests_sent')
+    to_user = db.relationship('User', foreign_keys=[to_user_id], backref='friend_requests_received')
+    
+    def accept(self):
+        """接受好友请求"""
+        if self.status == 'pending':
+            self.status = 'accepted'
+            # 建立双向好友关系
+            self.from_user.add_friend(self.to_user)
+            self.to_user.add_friend(self.from_user)
+            db.session.commit()
+            return True
+        return False
+    
+    def reject(self):
+        """拒绝好友请求"""
+        if self.status == 'pending':
+            self.status = 'rejected'
+            db.session.commit()
+            return True
+        return False
+    
+    def __repr__(self):
+        return f'<FriendRequest {self.id}>' 

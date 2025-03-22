@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}编辑个人资料 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+.edit-profile-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.edit-form-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #4a89dc;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-row {
+    display: flex;
+    margin: 0 -10px;
+}
+
+.form-col {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.avatar-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 3px solid #f0f0f0;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.privacy-options {
+    display: flex;
+    gap: 10px;
+}
+
+.privacy-option {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.privacy-option input {
+    margin-right: 5px;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #4a89dc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3a70b1;
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.form-tip {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+
+.skill-input-container {
+    position: relative;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    min-height: 30px;
+}
+
+.skill-tag {
+    background-color: #f0f7ff;
+    color: #4a89dc;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.skill-tag .remove-tag {
+    margin-left: 5px;
+    cursor: pointer;
+    color: #3a70b1;
+}
+
+.skill-tag .remove-tag:hover {
+    color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-col {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="edit-form-card">
+            <h2 class="section-title">基本信息</h2>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="avatar">头像</label>
+                        <div class="avatar-preview">
+                            <img id="avatar-preview-img" src="{{ user.avatar or '/static/images/default_avatar.png' }}" alt="头像预览">
+                        </div>
+                        <input type="file" id="avatar" name="avatar" class="form-control" accept="image/*">
+                        <div class="form-tip">建议上传正方形图片，最大尺寸: 2MB</div>
+                    </div>
+                </div>
+                
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="name">姓名/昵称</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ user.name or '' }}" placeholder="输入你的姓名或昵称">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" class="form-control" value="{{ user.username }}" disabled>
+                        <div class="form-tip">用户名不可修改</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">电子邮箱</label>
+                        <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled>
+                        <div class="form-tip">邮箱不可修改</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="bio">个人简介</label>
+                <textarea id="bio" name="bio" class="form-control" placeholder="简单介绍一下自己吧...">{{ user.bio or '' }}</textarea>
+            </div>
+        </div>
+        
+        <div class="edit-form-card">
+            <h2 class="section-title">学术信息</h2>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="department">院系</label>
+                        <input type="text" id="department" name="department" class="form-control" value="{{ user.department or '' }}" placeholder="例如：计算机科学与技术学院">
+                    </div>
+                </div>
+                
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="major">专业</label>
+                        <input type="text" id="major" name="major" class="form-control" value="{{ user.major or '' }}" placeholder="例如：软件工程">
+                    </div>
+                </div>
+                
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="grade">年级</label>
+                        <input type="text" id="grade" name="grade" class="form-control" value="{{ user.grade or '' }}" placeholder="例如：2023">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="skills">专业技能</label>
+                <div class="skill-tags" id="skill-tags-container">
+                    {% if user.skills %}
+                        {% for skill in user.skills.split(',') %}
+                            <div class="skill-tag" data-value="{{ skill.strip() }}">
+                                {{ skill.strip() }}
+                                <span class="remove-tag">&times;</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="skill-input-container">
+                    <input type="text" id="skill-input" class="form-control" placeholder="输入技能后按回车添加，例如：Python、Java、设计...">
+                    <input type="hidden" id="skills" name="skills" value="{{ user.skills or '' }}">
+                </div>
+                <div class="form-tip">添加你掌握的技能，方便找到志同道合的伙伴</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="interests">兴趣爱好</label>
+                <textarea id="interests" name="interests" class="form-control" placeholder="分享你的兴趣爱好...">{{ user.interests or '' }}</textarea>
+            </div>
+        </div>
+        
+        <div class="edit-form-card">
+            <h2 class="section-title">联系方式</h2>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="phone">手机号码</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="例如：13812345678">
+                        <div class="form-tip">仅对好友可见，请放心填写</div>
+                    </div>
+                </div>
+                
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="personal_website">个人网站</label>
+                        <input type="url" id="personal_website" name="personal_website" class="form-control" value="{{ user.personal_website or '' }}" placeholder="例如：https://mywebsite.com">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="github">GitHub</label>
+                <input type="url" id="github" name="github" class="form-control" value="{{ user.github or '' }}" placeholder="例如：https://github.com/username">
+            </div>
+        </div>
+        
+        <div class="edit-form-card">
+            <h2 class="section-title">隐私设置</h2>
+            
+            <div class="form-group">
+                <label>邮箱可见性</label>
+                <div class="privacy-options">
+                    <div class="privacy-option">
+                        <input type="radio" id="email-public" name="privacy_email" value="public" {% if user.privacy_settings and user.privacy_settings.get('email') == 'public' %}checked{% endif %}>
+                        <label for="email-public">公开</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="email-friends" name="privacy_email" value="friends" {% if not user.privacy_settings or user.privacy_settings.get('email') == 'friends' %}checked{% endif %}>
+                        <label for="email-friends">仅好友可见</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="email-private" name="privacy_email" value="private" {% if user.privacy_settings and user.privacy_settings.get('email') == 'private' %}checked{% endif %}>
+                        <label for="email-private">仅自己可见</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>电话可见性</label>
+                <div class="privacy-options">
+                    <div class="privacy-option">
+                        <input type="radio" id="phone-public" name="privacy_phone" value="public" {% if user.privacy_settings and user.privacy_settings.get('phone') == 'public' %}checked{% endif %}>
+                        <label for="phone-public">公开</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="phone-friends" name="privacy_phone" value="friends" {% if user.privacy_settings and user.privacy_settings.get('phone') == 'friends' %}checked{% endif %}>
+                        <label for="phone-friends">仅好友可见</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="phone-private" name="privacy_phone" value="private" {% if not user.privacy_settings or user.privacy_settings.get('phone') == 'private' %}checked{% endif %}>
+                        <label for="phone-private">仅自己可见</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>项目可见性</label>
+                <div class="privacy-options">
+                    <div class="privacy-option">
+                        <input type="radio" id="projects-public" name="privacy_projects" value="public" {% if not user.privacy_settings or user.privacy_settings.get('projects') == 'public' %}checked{% endif %}>
+                        <label for="projects-public">公开</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="projects-friends" name="privacy_projects" value="friends" {% if user.privacy_settings and user.privacy_settings.get('projects') == 'friends' %}checked{% endif %}>
+                        <label for="projects-friends">仅好友可见</label>
+                    </div>
+                    <div class="privacy-option">
+                        <input type="radio" id="projects-private" name="privacy_projects" value="private" {% if user.privacy_settings and user.privacy_settings.get('projects') == 'private' %}checked{% endif %}>
+                        <label for="projects-private">仅自己可见</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-container">
+            <a href="{{ url_for('profile.index') }}" class="btn btn-secondary">取消</a>
+            <button type="submit" class="btn btn-primary">保存修改</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 头像预览
+    const avatarInput = document.getElementById('avatar');
+    const avatarPreview = document.getElementById('avatar-preview-img');
+    
+    avatarInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result;
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    // 技能标签管理
+    const skillInput = document.getElementById('skill-input');
+    const skillsHidden = document.getElementById('skills');
+    const skillTagsContainer = document.getElementById('skill-tags-container');
+    
+    // 初始化技能标签
+    updateSkillsInput();
+    
+    // 添加技能标签
+    skillInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            const skill = this.value.trim();
+            if (skill) {
+                // 检查是否已存在该技能
+                const existingTags = Array.from(skillTagsContainer.querySelectorAll('.skill-tag'));
+                const isDuplicate = existingTags.some(tag => 
+                    tag.getAttribute('data-value').toLowerCase() === skill.toLowerCase()
+                );
+                
+                if (!isDuplicate) {
+                    addSkillTag(skill);
+                    this.value = '';
+                    updateSkillsInput();
+                }
+            }
+        }
+    });
+    
+    // 删除技能标签
+    skillTagsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-tag')) {
+            const tagElement = e.target.parentElement;
+            tagElement.remove();
+            updateSkillsInput();
+        }
+    });
+    
+    // 添加技能标签函数
+    function addSkillTag(skill) {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'skill-tag';
+        tagElement.setAttribute('data-value', skill);
+        
+        tagElement.innerHTML = `
+            ${skill}
+            <span class="remove-tag">&times;</span>
+        `;
+        
+        skillTagsContainer.appendChild(tagElement);
+    }
+    
+    // 更新隐藏输入框
+    function updateSkillsInput() {
+        const tags = Array.from(skillTagsContainer.querySelectorAll('.skill-tag'));
+        const skills = tags.map(tag => tag.getAttribute('data-value'));
+        skillsHidden.value = skills.join(',');
+    }
+});
+</script>
+{% endblock %} 

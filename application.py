@@ -6,6 +6,15 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
+from pathlib import Path
+from flask_cors import CORS
+
+# 加载环境变量
+env_path = Path('.') / '.env'
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -14,6 +23,7 @@ from flask_restx import Api
 from flask_mail import Mail  # 导入Mail
 from werkzeug.security import check_password_hash, generate_password_hash
 from config import config
+from app.extensions import db, migrate, login_manager, moment
 
 # 初始化扩展
 db = SQLAlchemy()
@@ -38,8 +48,13 @@ def create_app(config_name='default'):
     
     # 注册扩展
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     mail.init_app(app)  # 初始化mail
+    moment.init_app(app)
+    
+    # 允许跨域请求
+    CORS(app)
     
     # 导入模型以确保SQLAlchemy能够识别它们
     from models import User, VerificationCode
@@ -55,9 +70,27 @@ def create_app(config_name='default'):
     
     # 注册蓝图
     try:
-        # 直接导入auth蓝图
-        from app.auth import auth
-        app.register_blueprint(auth, url_prefix='/auth')
+        # 主蓝图
+        from app.main import main as main_blueprint
+        app.register_blueprint(main_blueprint)
+        
+        # 认证蓝图
+        from app.auth import auth as auth_blueprint
+        app.register_blueprint(auth_blueprint, url_prefix='/auth')
+        
+        # 用户蓝图
+        try:
+            from app.user import user as user_blueprint
+            app.register_blueprint(user_blueprint, url_prefix='/user')
+        except ImportError:
+            app.logger.warning('无法导入用户模块，跳过注册用户蓝图')
+        
+        # 个人中心蓝图
+        try:
+            from app.profile import profile as profile_blueprint
+            app.register_blueprint(profile_blueprint, url_prefix='/profile')
+        except ImportError:
+            app.logger.warning('无法导入个人中心模块，跳过注册个人中心蓝图')
         
         # 注册邮件蓝图
         from app.mail import mail_bp
@@ -79,10 +112,30 @@ def create_app(config_name='default'):
             has_team = False
             app.logger.warning("Team module not found")
         
+        # 注册社交蓝图
+        try:
+            from app.social import social
+            has_social = True
+        except ImportError:
+            has_social = False
+            app.logger.warning("Social module not found")
+        
+        # 注册支付蓝图
+        try:
+            from app.payment import payment
+            has_payment = True
+        except ImportError:
+            has_payment = False
+            app.logger.warning("Payment module not found")
+        
         if has_crowdfunding:
             app.register_blueprint(crowdfunding, url_prefix='/crowdfunding')
         if has_team:
             app.register_blueprint(team, url_prefix='/team')
+        if has_social:
+            app.register_blueprint(social, url_prefix='/social')
+        if has_payment:
+            app.register_blueprint(payment, url_prefix='/payment')
     except ImportError as e:
         app.logger.warning(f"蓝图导入失败: {e}")
     
@@ -117,25 +170,44 @@ def create_app(config_name='default'):
     if not app.debug and not app.testing:
         configure_logging(app)
     
+    # 注册自定义模板过滤器
+    def register_template_filters(app):
+        # 添加自定义过滤器的地方
+        pass
+    
+    register_template_filters(app)
+    
     return app
 
 def configure_logging(app):
     """配置应用日志"""
     # 设置日志级别
-    app.logger.setLevel(logging.INFO)
+    log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+    numeric_level = getattr(logging, log_level, logging.INFO)
+    app.logger.setLevel(numeric_level)
+    
+    # 确保日志目录存在
+    if not os.path.exists('logs'):
+        os.makedirs('logs', exist_ok=True)
     
     # 创建日志处理器
     file_handler = RotatingFileHandler('logs/app.log', maxBytes=10485760, backupCount=5)
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(numeric_level)
+    
+    # 控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(numeric_level)
     
     # 设置日志格式
     formatter = logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     )
     file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
     
     # 添加到应用日志
     app.logger.addHandler(file_handler)
+    app.logger.addHandler(console_handler)
     app.logger.info('校园众创平台 启动')
 
 # 创建API实例

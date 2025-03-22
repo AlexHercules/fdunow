@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}我的消息 - 校园众创平台{% endblock %}
+
+{% block styles %}
+<style>
+.messages-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.messages-header {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.messages-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.contact-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-bottom: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.contact-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.contact-link {
+    display: flex;
+    padding: 15px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.contact-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.contact-info {
+    flex-grow: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.contact-preview {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-meta {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.contact-time {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.unread-badge {
+    background-color: #4a89dc;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 2px 8px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    font-size: 14px;
+    transition: all 0.3s;
+    background-color: #fff;
+}
+
+.search-input:focus {
+    border-color: #4a89dc;
+    box-shadow: 0 0 0 3px rgba(74, 137, 220, 0.1);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    pointer-events: none;
+}
+
+.tab-nav {
+    display: flex;
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+    color: #4a89dc;
+    background-color: #f6faff;
+    border-bottom-color: #4a89dc;
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: #f9f9f9;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+    font-size: 40px;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.empty-text {
+    font-size: 16px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.btn-action {
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: #4a89dc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.btn-action:hover {
+    background-color: #3a70b1;
+}
+
+.online-indicator {
+    width: 10px;
+    height: 10px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .contact-meta {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messages-container">
+    <div class="messages-header">
+        <h1 class="messages-title">我的消息</h1>
+    </div>
+    
+    <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="搜索联系人..." id="search-input">
+    </div>
+    
+    <div class="tab-nav">
+        <div class="tab-btn active" data-tab="all">所有消息</div>
+        <div class="tab-btn" data-tab="friends">好友消息</div>
+        <div class="tab-btn" data-tab="groups">群聊消息</div>
+    </div>
+    
+    <!-- 所有消息选项卡 -->
+    <div class="tab-content active" id="all-tab">
+        {% if contacts %}
+            <div class="contacts-list">
+                {% for contact in contacts %}
+                <div class="contact-card" data-username="{{ contact.username.lower() }}">
+                    <a href="{{ url_for('profile.chat', user_id=contact.id) }}" class="contact-link">
+                        <img src="{{ contact.avatar or '/static/images/default_avatar.png' }}" alt="{{ contact.username }}" class="contact-avatar">
+                        <div class="contact-info">
+                            <div class="contact-name">{{ contact.username }}</div>
+                            <div class="contact-preview">
+                                {% if contact.last_message %}
+                                    {{ contact.last_message.content|truncate(50) }}
+                                {% else %}
+                                    还没有消息，点击开始聊天
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="contact-meta">
+                            <div class="contact-time">
+                                {% if contact.last_message %}
+                                    {{ contact.last_message.created_at|time_ago }}
+                                {% endif %}
+                            </div>
+                            {% if contact.unread_count > 0 %}
+                            <div class="unread-badge">{{ contact.unread_count }}</div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                <div class="empty-text">你还没有任何消息</div>
+                <a href="{{ url_for('user.list') }}" class="btn-action">浏览用户</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 好友消息选项卡 -->
+    <div class="tab-content" id="friends-tab">
+        {% set friends = current_user.friends.all() %}
+        {% if friends %}
+            <div class="contacts-list">
+                {% for friend in friends %}
+                <div class="contact-card" data-username="{{ friend.username.lower() }}">
+                    <a href="{{ url_for('profile.chat', user_id=friend.id) }}" class="contact-link">
+                        <img src="{{ friend.avatar or '/static/images/default_avatar.png' }}" alt="{{ friend.username }}" class="contact-avatar">
+                        <div class="contact-info">
+                            <div class="contact-name">
+                                {{ friend.username }}
+                                <!-- 这里可以添加在线状态指示器，实际项目需要实现在线状态检测 -->
+                                <!-- <span class="online-indicator"></span> -->
+                            </div>
+                            <div class="contact-preview">
+                                {{ friend.department or '' }} {{ friend.major or '' }}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
+                <div class="empty-text">你还没有添加任何好友</div>
+                <a href="{{ url_for('user.list') }}" class="btn-action">浏览用户</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 群聊消息选项卡 -->
+    <div class="tab-content" id="groups-tab">
+        {% set groups = current_user.groups.all() %}
+        {% if groups %}
+            <div class="contacts-list">
+                {% for group in groups %}
+                <div class="contact-card" data-username="{{ group.name.lower() }}">
+                    <a href="{{ url_for('profile.group_detail', group_id=group.id) }}" class="contact-link">
+                        <img src="{{ group.avatar or '/static/images/default_group.png' }}" alt="{{ group.name }}" class="contact-avatar">
+                        <div class="contact-info">
+                            <div class="contact-name">{{ group.name }}</div>
+                            <div class="contact-preview">
+                                <i class="fas fa-users"></i> {{ group.members|length }} 位成员
+                                {% if group.team %}
+                                 · {{ group.team.name }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                <div class="empty-text">你还没有加入任何群聊</div>
+                <a href="{{ url_for('profile.create_group') }}" class="btn-action">创建群聊</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 选项卡切换
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // 移除所有选项卡的active类
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // 激活当前选项卡
+            this.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        });
+    });
+    
+    // 联系人搜索功能
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const activeTab = document.querySelector('.tab-content.active');
+        const cards = activeTab.querySelectorAll('.contact-card');
+        
+        cards.forEach(card => {
+            const username = card.getAttribute('data-username');
+            if (username.includes(query)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 
