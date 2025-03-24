@@ -44,7 +44,7 @@ def list():
     pagination = user_query.paginate(page=page, per_page=per_page)
     users = pagination.items
     
-    # 获取所有可用的专业和技能列表（用于过滤选项）
+    # 获取所有可用的专业和技能列表（用于过滤选项�?
     # 注意：在实际应用中，这可能需要优化或缓存，特别是用户数量大时
     distinct_majors = db.session.query(User.major).distinct().filter(User.major != None, User.major != '').all()
     majors = [m[0] for m in distinct_majors]
@@ -80,16 +80,16 @@ def detail(user_id):
     # 获取用户及其关联数据
     user_obj = User.query.get_or_404(user_id)
     
-    # 获取用户创建的项目
+    # 获取用户创建的项�?
     created_projects = user_obj.created_projects.all()
     
-    # 获取用户支持的项目
+    # 获取用户支持的项�?
     supported_projects = user_obj.supported_projects.all()
     
-    # 获取用户的团队
+    # 获取用户的团�?
     teams = user_obj.teams.all()
     
-    # 获取用户的好友（如果当前用户有权查看）
+    # 获取用户的好友（如果当前用户有权查看�?
     friends = []
     if user_id == current_user.id or current_user.is_friend(user_obj):
         friends = user_obj.friends.all()

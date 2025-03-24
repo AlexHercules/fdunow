@@ -1,0 +1,632 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}财务报表 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">财务报表</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">管理后台</a></li>
+        <li class="breadcrumb-item active">财务报表</li>
+    </ol>
+    
+    <!-- 日期范围选择器 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-calendar me-1"></i>
+            选择日期范围
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <span class="input-group-text">从</span>
+                        <input type="date" id="start-date" class="form-control">
+                        <span class="input-group-text">到</span>
+                        <input type="date" id="end-date" class="form-control">
+                        <button id="apply-date-filter" class="btn btn-primary">应用</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="date-range-preset" class="form-select">
+                        <option value="7">最近7天</option>
+                        <option value="30" selected>最近30天</option>
+                        <option value="90">最近90天</option>
+                        <option value="180">最近半年</option>
+                        <option value="365">最近一年</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 财务摘要卡片 -->
+    <div class="row" id="financial-summary">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>总捐款金额</h5>
+                    <h2 id="total-donations">¥0.00</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span id="donation-count">0 笔捐款</span>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>平台服务费</h5>
+                    <h2 id="total-fees">¥0.00</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span id="avg-fee-rate">平均费率: 0%</span>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5>退款金额</h5>
+                    <h2 id="total-refunds">¥0.00</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span id="refund-rate">退款率: 0%</span>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5>项目数量</h5>
+                    <h2 id="project-count">0</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span id="successful-projects">成功: 0</span>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 图表 -->
+    <div class="row">
+        <!-- 捐款趋势图 -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-area me-1"></i>
+                    捐款趋势
+                </div>
+                <div class="card-body">
+                    <canvas id="donation-trend-chart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 支付方式分布 -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    支付方式分布
+                </div>
+                <div class="card-body">
+                    <canvas id="payment-methods-chart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 最近交易记录 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            最近交易记录
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="transactions-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>交易ID</th>
+                            <th>类型</th>
+                            <th>金额</th>
+                            <th>状态</th>
+                            <th>支付方式</th>
+                            <th>用户</th>
+                            <th>项目</th>
+                            <th>时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                        <tr>
+                            <td colspan="9" class="text-center">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <select id="page-size" class="form-select form-select-sm">
+                        <option value="10">10条/页</option>
+                        <option value="20" selected>20条/页</option>
+                        <option value="50">50条/页</option>
+                        <option value="100">100条/页</option>
+                    </select>
+                </div>
+                <nav>
+                    <ul id="pagination" class="pagination pagination-sm">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">上一页</a>
+                        </li>
+                        <li class="page-item active">
+                            <a class="page-link" href="#">1</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 导出按钮 -->
+    <div class="mb-4">
+        <button id="export-data" class="btn btn-success">
+            <i class="fas fa-file-excel me-1"></i> 导出报表数据
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化日期范围
+        initDateRange();
+        
+        // 加载财务数据
+        loadFinancialSummary();
+        
+        // 加载交易数据
+        loadTransactions(1);
+        
+        // 加载图表
+        loadDonationTrendChart();
+        loadPaymentMethodsChart();
+        
+        // 事件监听
+        document.getElementById('apply-date-filter').addEventListener('click', function() {
+            loadFinancialSummary();
+            loadTransactions(1);
+            loadDonationTrendChart();
+            loadPaymentMethodsChart();
+        });
+        
+        document.getElementById('date-range-preset').addEventListener('change', function() {
+            setDateRangeFromPreset(this.value);
+            loadFinancialSummary();
+            loadTransactions(1);
+            loadDonationTrendChart();
+            loadPaymentMethodsChart();
+        });
+        
+        document.getElementById('page-size').addEventListener('change', function() {
+            loadTransactions(1);
+        });
+        
+        document.getElementById('export-data').addEventListener('click', exportData);
+    });
+    
+    // 初始化日期范围
+    function initDateRange() {
+        const today = new Date();
+        const endDate = formatDate(today);
+        
+        const startDate = formatDate(new Date(today.setDate(today.getDate() - 30)));
+        
+        document.getElementById('start-date').value = startDate;
+        document.getElementById('end-date').value = endDate;
+    }
+    
+    // 从预设设置日期范围
+    function setDateRangeFromPreset(days) {
+        const today = new Date();
+        const endDate = formatDate(today);
+        
+        const startDate = formatDate(new Date(today.setDate(today.getDate() - parseInt(days))));
+        
+        document.getElementById('start-date').value = startDate;
+        document.getElementById('end-date').value = endDate;
+    }
+    
+    // 日期格式化
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    // 获取日期范围参数
+    function getDateRangeParams() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        return `start_date=${startDate}&end_date=${endDate}`;
+    }
+    
+    // 加载财务摘要
+    function loadFinancialSummary() {
+        const url = `/api/financial-summary?${getDateRangeParams()}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // 更新摘要卡片
+                document.getElementById('total-donations').textContent = `¥${data.total_donations.toFixed(2)}`;
+                document.getElementById('donation-count').textContent = `${data.donor_count} 位捐赠者`;
+                
+                document.getElementById('total-fees').textContent = `¥${data.total_fees.toFixed(2)}`;
+                const avgFeeRate = data.total_donations > 0 ? (data.total_fees / data.total_donations * 100) : 0;
+                document.getElementById('avg-fee-rate').textContent = `平均费率: ${avgFeeRate.toFixed(2)}%`;
+                
+                document.getElementById('total-refunds').textContent = `¥${data.total_refunds.toFixed(2)}`;
+                const refundRate = data.total_donations > 0 ? (data.total_refunds / data.total_donations * 100) : 0;
+                document.getElementById('refund-rate').textContent = `退款率: ${refundRate.toFixed(2)}%`;
+                
+                document.getElementById('project-count').textContent = data.successful_projects;
+                document.getElementById('successful-projects').textContent = `成功: ${data.successful_projects}`;
+            })
+            .catch(error => {
+                console.error('加载财务摘要失败:', error);
+                alert('加载财务数据失败，请稍后重试');
+            });
+    }
+    
+    // 加载交易记录
+    function loadTransactions(page) {
+        const pageSize = document.getElementById('page-size').value;
+        const url = `/api/transactions/report?${getDateRangeParams()}&page=${page}&per_page=${pageSize}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                renderTransactionsTable(data.transactions);
+                renderPagination(data.pagination);
+            })
+            .catch(error => {
+                console.error('加载交易记录失败:', error);
+                document.getElementById('transactions-body').innerHTML = 
+                    '<tr><td colspan="9" class="text-center text-danger">加载失败，请稍后重试</td></tr>';
+            });
+    }
+    
+    // 渲染交易表格
+    function renderTransactionsTable(transactions) {
+        const tbody = document.getElementById('transactions-body');
+        
+        if (!transactions || transactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">没有交易记录</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        
+        transactions.forEach(transaction => {
+            const createdAt = new Date(transaction.created_at).toLocaleString();
+            
+            // 交易类型样式
+            let typeClass = 'badge bg-secondary';
+            if (transaction.transaction_type === 'donation') {
+                typeClass = 'badge bg-primary';
+            } else if (transaction.transaction_type === 'refund') {
+                typeClass = 'badge bg-warning';
+            } else if (transaction.transaction_type === 'fee') {
+                typeClass = 'badge bg-success';
+            }
+            
+            // 状态样式
+            let statusClass = 'badge bg-secondary';
+            if (transaction.status === 'completed') {
+                statusClass = 'badge bg-success';
+            } else if (transaction.status === 'pending') {
+                statusClass = 'badge bg-warning';
+            } else if (transaction.status === 'failed') {
+                statusClass = 'badge bg-danger';
+            } else if (transaction.status === 'refunded') {
+                statusClass = 'badge bg-info';
+            }
+            
+            html += `
+                <tr>
+                    <td>${transaction.id}</td>
+                    <td><span class="${typeClass}">${getTransactionTypeName(transaction.transaction_type)}</span></td>
+                    <td>¥${transaction.amount.toFixed(2)}</td>
+                    <td><span class="${statusClass}">${getStatusName(transaction.status)}</span></td>
+                    <td>${transaction.payment_method ? getPaymentMethodName(transaction.payment_method) : '-'}</td>
+                    <td>${transaction.user_id ? `<a href="/admin/users/${transaction.user_id}">#${transaction.user_id}</a>` : '-'}</td>
+                    <td>${transaction.project_id ? `<a href="/admin/projects/${transaction.project_id}">#${transaction.project_id}</a>` : '-'}</td>
+                    <td>${createdAt}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary view-transaction" data-id="${transaction.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+        
+        // 添加查看交易详情事件
+        document.querySelectorAll('.view-transaction').forEach(button => {
+            button.addEventListener('click', function() {
+                const transactionId = this.getAttribute('data-id');
+                viewTransactionDetails(transactionId);
+            });
+        });
+    }
+    
+    // 渲染分页控件
+    function renderPagination(pagination) {
+        const paginationElement = document.getElementById('pagination');
+        
+        if (!pagination || pagination.pages <= 1) {
+            paginationElement.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // 上一页按钮
+        html += `
+            <li class="page-item ${pagination.page <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${pagination.page - 1}" tabindex="-1">上一页</a>
+            </li>
+        `;
+        
+        // 页码按钮
+        const startPage = Math.max(1, pagination.page - 2);
+        const endPage = Math.min(pagination.pages, pagination.page + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `
+                <li class="page-item ${pagination.page === i ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `;
+        }
+        
+        // 下一页按钮
+        html += `
+            <li class="page-item ${pagination.page >= pagination.pages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${pagination.page + 1}">下一页</a>
+            </li>
+        `;
+        
+        paginationElement.innerHTML = html;
+        
+        // 添加页码点击事件
+        document.querySelectorAll('#pagination .page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (this.parentElement.classList.contains('disabled')) {
+                    return;
+                }
+                
+                const page = parseInt(this.getAttribute('data-page'));
+                loadTransactions(page);
+            });
+        });
+    }
+    
+    // 查看交易详情
+    function viewTransactionDetails(transactionId) {
+        // 这里可以实现查看交易详情的功能
+        alert(`查看交易 #${transactionId} 的详情`);
+    }
+    
+    // 加载捐款趋势图表
+    function loadDonationTrendChart() {
+        // 模拟数据，实际项目中应从API获取
+        const labels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月'];
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: '捐款金额',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    data: [5000, 8000, 15000, 12000, 20000, 18000, 25000],
+                    yAxisID: 'y',
+                },
+                {
+                    label: '捐款人数',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    data: [50, 80, 120, 100, 150, 140, 180],
+                    yAxisID: 'y1',
+                }
+            ]
+        };
+        
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: '金额 (元)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: '人数'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                }
+            }
+        };
+        
+        // 获取图表上下文
+        const ctx = document.getElementById('donation-trend-chart').getContext('2d');
+        
+        // 销毁现有图表（如果存在）
+        if (window.donationTrendChart) {
+            window.donationTrendChart.destroy();
+        }
+        
+        // 创建新图表
+        window.donationTrendChart = new Chart(ctx, config);
+    }
+    
+    // 加载支付方式分布图表
+    function loadPaymentMethodsChart() {
+        // 获取支付方式统计数据
+        const url = `/api/payment-methods/report?${getDateRangeParams()}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                renderPaymentMethodsChart(data.payment_methods);
+            })
+            .catch(error => {
+                console.error('加载支付方式统计失败:', error);
+                
+                // 使用模拟数据渲染
+                const mockData = [
+                    { payment_method: 'alipay', count: 150, total_amount: 15000, percentage: 60 },
+                    { payment_method: 'wechat', count: 80, total_amount: 8000, percentage: 32 },
+                    { payment_method: 'campus_card', count: 15, total_amount: 1500, percentage: 6 },
+                    { payment_method: 'bank_transfer', count: 5, total_amount: 500, percentage: 2 }
+                ];
+                
+                renderPaymentMethodsChart(mockData);
+            });
+    }
+    
+    // 渲染支付方式分布图表
+    function renderPaymentMethodsChart(paymentMethods) {
+        if (!paymentMethods || paymentMethods.length === 0) {
+            return;
+        }
+        
+        const labels = paymentMethods.map(method => getPaymentMethodName(method.payment_method));
+        const data = paymentMethods.map(method => method.total_amount);
+        const backgroundColor = [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(153, 102, 255, 0.8)'
+        ];
+        
+        const config = {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const percentage = paymentMethods[context.dataIndex].percentage;
+                                return `${label}: ¥${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        // 获取图表上下文
+        const ctx = document.getElementById('payment-methods-chart').getContext('2d');
+        
+        // 销毁现有图表（如果存在）
+        if (window.paymentMethodsChart) {
+            window.paymentMethodsChart.destroy();
+        }
+        
+        // 创建新图表
+        window.paymentMethodsChart = new Chart(ctx, config);
+    }
+    
+    // 导出数据
+    function exportData() {
+        alert('导出功能正在开发中...');
+    }
+    
+    // 获取交易类型名称
+    function getTransactionTypeName(type) {
+        const typeMap = {
+            'donation': '捐款',
+            'refund': '退款',
+            'fee': '服务费',
+            'withdrawal': '提现'
+        };
+        
+        return typeMap[type] || type;
+    }
+    
+    // 获取状态名称
+    function getStatusName(status) {
+        const statusMap = {
+            'pending': '待处理',
+            'completed': '已完成',
+            'failed': '失败',
+            'refunded': '已退款',
+            'disputed': '争议中'
+        };
+        
+        return statusMap[status] || status;
+    }
+    
+    // 获取支付方式名称
+    function getPaymentMethodName(method) {
+        const methodMap = {
+            'alipay': '支付宝',
+            'wechat': '微信支付',
+            'campus_card': '校园卡',
+            'bank_transfer': '银行转账'
+        };
+        
+        return methodMap[method] || method;
+    }
+</script>
+{% endblock %} 

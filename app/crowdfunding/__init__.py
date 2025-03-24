@@ -1,5 +1,5 @@
 """
-众筹模块初始化
+众筹模块初始�?
 """
 from .routes import crowdfunding
 

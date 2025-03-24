@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}支付帮助 - 校园众筹平台{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h1 class="display-5 fw-bold text-center mb-4">支付帮助中心</h1>
+            <p class="lead text-center">了解支付流程、退款政策、服务费说明等常见问题</p>
+        </div>
+    </div>
+    
+    <!-- 帮助导航 -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <nav class="nav nav-pills nav-fill">
+                        <a class="nav-link active" href="#payment-process" data-bs-toggle="tab">支付流程</a>
+                        <a class="nav-link" href="#refund-policy" data-bs-toggle="tab">退款政策</a>
+                        <a class="nav-link" href="#service-fees" data-bs-toggle="tab">服务费说明</a>
+                        <a class="nav-link" href="#payment-security" data-bs-toggle="tab">支付安全</a>
+                        <a class="nav-link" href="#faq" data-bs-toggle="tab">常见问题</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帮助内容 -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- 支付流程 -->
+                        <div class="tab-pane fade show active" id="payment-process">
+                            <h3 class="mb-4">支付流程</h3>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5>1. 选择项目并点击"支持项目"</h5>
+                                    <p>浏览项目列表，找到您感兴趣的项目，点击项目详情页面上的"支持项目"按钮。</p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fas fa-hand-pointer fa-3x text-primary"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5>2. 选择支持金额和支付方式</h5>
+                                    <p>在支付页面选择您想要捐赠的金额，然后选择支付宝、微信支付、校园卡或银行转账等支付方式。您可以选择添加留言给项目发起人。</p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fas fa-money-bill-wave fa-3x text-primary"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5>3. 完成支付</h5>
+                                    <p>根据您选择的支付方式，系统会生成相应的支付二维码或跳转到支付网关。按照提示完成支付即可。</p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fas fa-qrcode fa-3x text-primary"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5>4. 支付确认</h5>
+                                    <p>支付完成后，系统会自动验证支付状态，并在支付成功后更新项目筹款进度。您可以在"我的捐款"页面查看捐款记录和状态。</p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fas fa-check-circle fa-3x text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 退款政策 -->
+                        <div class="tab-pane fade" id="refund-policy">
+                            <h3 class="mb-4">退款政策</h3>
+                            
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle"></i> 校园众筹平台采用阶段性退款策略，根据项目执行进度提供不同比例的退款。
+                            </div>
+                            
+                            <h5>退款条件</h5>
+                            <p>捐款用户在以下情况下可以申请退款：</p>
+                            <ul class="mb-4">
+                                <li>项目未能在筹款期内达到目标金额</li>
+                                <li>项目发起人因故无法继续执行项目</li>
+                                <li>项目执行与描述严重不符</li>
+                                <li>用户在捐款后30天内因个人原因申请退款</li>
+                            </ul>
+                            
+                            <h5>退款比例</h5>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>项目状态</th>
+                                            <th>退款比例</th>
+                                            <th>备注</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>项目未达筹款目标（自动退款）</td>
+                                            <td>100%</td>
+                                            <td>系统自动处理，3-7个工作日到账</td>
+                                        </tr>
+                                        <tr>
+                                            <td>项目完成率低于30%</td>
+                                            <td>95%</td>
+                                            <td>5%作为平台手续费</td>
+                                        </tr>
+                                        <tr>
+                                            <td>项目完成率30%-60%</td>
+                                            <td>80%</td>
+                                            <td>20%用于项目已发生成本和平台费用</td>
+                                        </tr>
+                                        <tr>
+                                            <td>项目完成率超过60%</td>
+                                            <td>70%</td>
+                                            <td>30%用于项目已发生成本和平台费用</td>
+                                        </tr>
+                                        <tr>
+                                            <td>项目已结束超过30天</td>
+                                            <td>不予退款</td>
+                                            <td>特殊情况可提交争议申请</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5>退款流程</h5>
+                            <ol class="mb-4">
+                                <li>用户在"我的捐款"页面找到相应交易，点击"申请退款"</li>
+                                <li>填写退款原因，提交相关证据（如有）</li>
+                                <li>平台在3个工作日内审核退款申请</li>
+                                <li>审核通过后，退款将在7个工作日内原路返回</li>
+                                <li>如对退款结果有异议，可提交争议申请</li>
+                            </ol>
+                            
+                            <h5>争议处理</h5>
+                            <p>如果退款申请被拒绝或对退款比例有异议，用户可以提交争议申请。平台将组织第三方评审委员会审核争议案例，并在15个工作日内给出最终处理结果。</p>
+                        </div>
+                        
+                        <!-- 服务费说明 -->
+                        <div class="tab-pane fade" id="service-fees">
+                            <h3 class="mb-4">服务费说明</h3>
+                            
+                            <p class="mb-4">为了维持平台的正常运营和提供更好的服务，校园众筹平台对成功筹款的项目收取一定比例的服务费。我们根据项目类型采用差异化费率，并为大额筹款提供费率优惠。</p>
+                            
+                            <h5>基础服务费率</h5>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>项目类型</th>
+                                            <th>服务费率</th>
+                                            <th>说明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>公益类项目</td>
+                                            <td>2%</td>
+                                            <td>用于校园公益、慈善活动的筹款项目</td>
+                                        </tr>
+                                        <tr>
+                                            <td>学术类项目</td>
+                                            <td>3%</td>
+                                            <td>用于学术研究、学科竞赛等的筹款项目</td>
+                                        </tr>
+                                        <tr>
+                                            <td>文化体育类项目</td>
+                                            <td>4%</td>
+                                            <td>用于校园文化活动、体育比赛等的筹款项目</td>
+                                        </tr>
+                                        <tr>
+                                            <td>创业类项目</td>
+                                            <td>5%</td>
+                                            <td>用于校园创业、产品开发等的筹款项目</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5>大额筹款优惠</h5>
+                            <p>对于筹款金额较大的项目，我们提供阶梯式费率优惠：</p>
+                            <ul class="mb-4">
+                                <li>筹款金额超过10,000元的部分，服务费率下调0.5%</li>
+                                <li>筹款金额超过50,000元的部分，服务费率下调1%</li>
+                                <li>筹款金额超过100,000元的部分，服务费率下调1.5%</li>
+                            </ul>
+                            
+                            <div class="alert alert-success mb-4">
+                                <h6 class="alert-heading"><i class="fas fa-calculator"></i> 费用计算示例</h6>
+                                <p class="mb-0">某学术类项目筹款80,000元，服务费计算如下：</p>
+                                <ul class="mb-0">
+                                    <li>10,000元以内：10,000 × 3% = 300元</li>
+                                    <li>10,000-50,000元：40,000 × 2.5% = 1,000元</li>
+                                    <li>50,000-80,000元：30,000 × 2% = 600元</li>
+                                    <li>总服务费：300 + 1,000 + 600 = 1,900元</li>
+                                </ul>
+                            </div>
+                            
+                            <h5>服务费用途</h5>
+                            <p>平台收取的服务费主要用于以下方面：</p>
+                            <ul>
+                                <li>平台技术维护和开发</li>
+                                <li>支付渠道手续费</li>
+                                <li>项目审核和监督</li>
+                                <li>客户服务和用户支持</li>
+                                <li>校园创新活动支持</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 支付安全 -->
+                        <div class="tab-pane fade" id="payment-security">
+                            <h3 class="mb-4">支付安全</h3>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5><i class="fas fa-lock text-success"></i> 数据加密保护</h5>
+                                    <p>我们采用银行级别的SSL加密技术保护支付数据传输，确保您的支付信息不会被窃取或篡改。所有敏感数据在存储时都会进行加密处理。</p>
+                                </div>
+                                <div class="col-md-4 text-center d-flex align-items-center justify-content-center">
+                                    <img src="{{ url_for('static', filename='img/payment/ssl-encryption.png') }}" alt="SSL加密" class="img-fluid rounded" style="max-height: 100px;">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5><i class="fas fa-shield-alt text-success"></i> 第三方支付机构合作</h5>
+                                    <p>我们与支付宝、微信支付等正规第三方支付机构合作，您的资金流转全程由这些持牌金融机构负责，确保资金安全。平台不会直接接触用户资金。</p>
+                                </div>
+                                <div class="col-md-4 text-center d-flex align-items-center justify-content-center">
+                                    <img src="{{ url_for('static', filename='img/payment/payment-partners.png') }}" alt="支付合作伙伴" class="img-fluid rounded" style="max-height: 100px;">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5><i class="fas fa-user-shield text-success"></i> 个人信息保护</h5>
+                                    <p>我们严格遵守隐私保护法规，不会收集非必要的个人信息，所有收集的信息仅用于支付处理和必要的身份验证。您的银行卡详细信息不会在我们的系统中存储。</p>
+                                </div>
+                                <div class="col-md-4 text-center d-flex align-items-center justify-content-center">
+                                    <img src="{{ url_for('static', filename='img/payment/privacy-protection.png') }}" alt="隐私保护" class="img-fluid rounded" style="max-height: 100px;">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5><i class="fas fa-bell text-success"></i> 交易通知机制</h5>
+                                    <p>每笔支付交易都会通过邮件或站内消息通知用户，如果您发现未经授权的交易，可以立即联系我们处理。重要的账户操作需要二次验证，防止未授权访问。</p>
+                                </div>
+                                <div class="col-md-4 text-center d-flex align-items-center justify-content-center">
+                                    <img src="{{ url_for('static', filename='img/payment/transaction-alert.png') }}" alt="交易通知" class="img-fluid rounded" style="max-height: 100px;">
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> 安全提示</h6>
+                                <p class="mb-0">请注意，平台工作人员<strong>绝不会</strong>通过电话、短信或邮件向您索要支付密码、验证码等敏感信息。请警惕冒充平台名义的诈骗行为。</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 常见问题 -->
+                        <div class="tab-pane fade" id="faq">
+                            <h3 class="mb-4">常见问题</h3>
+                            
+                            <div class="accordion" id="faqAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faq1">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent1" aria-expanded="true" aria-controls="faqContent1">
+                                            支持项目后多久能收到回报？
+                                        </button>
+                                    </h2>
+                                    <div id="faqContent1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <p>项目回报时间取决于项目发起人设定的回报计划。一般情况下，项目在筹款成功后开始执行，并按照项目页面上公示的时间表发放回报。您可以在项目详情页查看具体的回报时间，也可以在"我的捐款"页面跟踪回报状态。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faq2">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent2" aria-expanded="false" aria-controls="faqContent2">
+                                            支付过程中遇到问题怎么办？
+                                        </button>
+                                    </h2>
+                                    <div id="faqContent2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <p>如果您在支付过程中遇到问题，可以：</p>
+                                            <ol>
+                                                <li>刷新页面后重新尝试支付</li>
+                                                <li>尝试切换不同的支付方式</li>
+                                                <li>检查您的支付账户余额是否充足</li>
+                                                <li>确认网络连接是否稳定</li>
+                                            </ol>
+                                            <p>如果问题仍然存在，请联系客服（邮箱：support@fducrowd.edu.cn 或电话：021-12345678），并提供您遇到问题的详细描述和截图。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faq3">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent3" aria-expanded="false" aria-controls="faqContent3">
+                                            项目筹款失败，我的捐款会怎样处理？
+                                        </button>
+                                    </h2>
+                                    <div id="faqContent3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <p>如果项目在截止日期前未能达到目标金额，根据平台规则，所有捐款将自动退回给支持者。退款将原路返回到您的支付账户，一般在项目结束后3-7个工作日内到账。您可以在"我的捐款"页面查看退款状态。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faq4">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent4" aria-expanded="false" aria-controls="faqContent4">
+                                            如何获取捐款发票或收据？
+                                        </button>
+                                    </h2>
+                                    <div id="faqContent4" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <p>您可以在"我的捐款"页面找到相应交易，点击"详情"，然后选择"申请发票/收据"功能。根据捐款金额和项目性质，系统将提供电子收据或纸质发票选项。电子收据将立即发送至您的邮箱，纸质发票需填写邮寄地址，将在7个工作日内寄出。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faq5">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent5" aria-expanded="false" aria-controls="faqContent5">
+                                            项目方未按承诺提供回报，如何处理？
+                                        </button>
+                                    </h2>
+                                    <div id="faqContent5" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <p>如果项目方未按承诺提供回报，您可以：</p>
+                                            <ol>
+                                                <li>首先，通过站内消息或项目评论区联系项目方，询问回报进度</li>
+                                                <li>如项目方回应但需要延期，请评估是否接受延期</li>
+                                                <li>如项目方长时间无回应或明确表示无法提供回报，您可以在"我的捐款"页面申请退款</li>
+                                                <li>如退款申请被拒绝，可提交争议申请，平台将介入协调</li>
+                                            </ol>
+                                            <p>平台会定期审核项目执行情况，对于严重违反承诺的项目方，将采取相应的处罚措施，包括冻结资金、禁止发起新项目等。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <p>如果您的问题未在上述内容中得到解答，请联系我们的客服团队：</p>
+                                <p><i class="fas fa-envelope"></i> 邮箱：support@fducrowd.edu.cn</p>
+                                <p><i class="fas fa-phone"></i> 电话：021-12345678（工作日 9:00-17:00）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

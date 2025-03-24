@@ -8,4 +8,4 @@ social = Blueprint('social', __name__)
 def index():
     """社交首页"""
     flash('社交功能正在开发中，敬请期待！', 'info')
-    return redirect(url_for('index')) 
+    return render_template('social/index.html') 

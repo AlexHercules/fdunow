@@ -21,19 +21,10 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_restx import Api
-from flask_mail import Mail  # 导入Mail
+from flask_mail import Mail
 from werkzeug.security import check_password_hash, generate_password_hash
 from config import config
-from app.extensions import db, migrate, login_manager, moment
-
-# 初始化扩展
-db = SQLAlchemy()
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.login_message = '请先登录才能访问此页面'
-login_manager.login_message_category = 'warning'
-mail = Mail()  # 初始化Mail
-socketio = SocketIO(cors_allowed_origins="*")  # 初始化SocketIO
+from app.extensions import db, migrate, login_manager, mail, moment, socketio
 
 # 创建应用工厂函数
 def create_app(config_name='default'):
@@ -53,15 +44,15 @@ def create_app(config_name='default'):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    mail.init_app(app)  # 初始化mail
+    mail.init_app(app)
     moment.init_app(app)
-    socketio.init_app(app)  # 初始化SocketIO，允许跨域
+    socketio.init_app(app)
     
     # 允许跨域请求
     CORS(app)
     
     # 导入模型以确保SQLAlchemy能够识别它们
-    from models import User, VerificationCode
+    from app.models import User, VerificationCode
     
     # 创建数据库表
     with app.app_context():
@@ -104,49 +95,47 @@ def create_app(config_name='default'):
             app.logger.warning('无法导入实时消息模块，跳过注册实时消息蓝图')
         
         # 注册邮件蓝图
-        from app.mail import mail_bp
-        app.register_blueprint(mail_bp, url_prefix='/mail')
+        try:
+            from app.mail import mail_bp
+            app.register_blueprint(mail_bp, url_prefix='/mail')
+        except ImportError:
+            app.logger.warning('无法导入邮件模块，跳过注册邮件蓝图')
         
         # 注册众筹蓝图
         try:
             from app.crowdfunding import crowdfunding
-            has_crowdfunding = True
+            app.register_blueprint(crowdfunding, url_prefix='/crowdfunding')
         except ImportError:
-            has_crowdfunding = False
-            app.logger.warning("Crowdfunding module not found")
+            app.logger.warning("众筹模块未找到")
         
         # 注册团队蓝图
         try:
             from app.team import team
-            has_team = True
+            app.register_blueprint(team, url_prefix='/team')
         except ImportError:
-            has_team = False
-            app.logger.warning("Team module not found")
+            app.logger.warning("团队模块未找到")
         
         # 注册社交蓝图
         try:
             from app.social import social
-            has_social = True
+            app.register_blueprint(social, url_prefix='/social')
         except ImportError:
-            has_social = False
-            app.logger.warning("Social module not found")
+            app.logger.warning("社交模块未找到")
         
         # 注册支付蓝图
         try:
-            from app.payment import payment
-            has_payment = True
+            from app.payment import payment_bp
+            app.register_blueprint(payment_bp, url_prefix='/payment')
         except ImportError:
-            has_payment = False
-            app.logger.warning("Payment module not found")
-        
-        if has_crowdfunding:
-            app.register_blueprint(crowdfunding, url_prefix='/crowdfunding')
-        if has_team:
-            app.register_blueprint(team, url_prefix='/team')
-        if has_social:
-            app.register_blueprint(social, url_prefix='/social')
-        if has_payment:
-            app.register_blueprint(payment, url_prefix='/payment')
+            app.logger.warning("支付模块未找到")
+            
+        # 注册管理蓝图
+        try:
+            from app.admin import admin
+            app.register_blueprint(admin, url_prefix='/admin')
+        except ImportError:
+            app.logger.warning("管理模块未找到")
+            
     except ImportError as e:
         app.logger.warning(f"蓝图导入失败: {e}")
     
@@ -169,8 +158,11 @@ def create_app(config_name='default'):
         return render_template('project/second-hand.html')
     
     # 注册错误处理
-    from app.errors import register_error_handlers
-    register_error_handlers(app)
+    try:
+        from app.errors import register_error_handlers
+        register_error_handlers(app)
+    except ImportError:
+        app.logger.warning("错误处理模块未找到")
     
     # 配置日志（非调试模式）
     if not app.debug and not app.testing:
@@ -249,4 +241,4 @@ api.init_app(app)
 
 # 如果作为主程序运行
 if __name__ == '__main__':
-    socketio.run(app, debug=True) 
+    socketio.run(app, debug=app.config['DEBUG'], host='0.0.0.0', port=5000) 

@@ -1,5 +1,5 @@
 """
-邮件发送模块
+邮件发送模�?
 """
 from flask import Blueprint, current_app, jsonify, request
 from application import mail
@@ -9,20 +9,20 @@ import threading
 mail_bp = Blueprint('mail', __name__)
 
 def send_async_email(app, msg):
-    """异步发送邮件"""
+    """异步发送邮�?""
     with app.app_context():
         try:
             mail.send(msg)
         except Exception as e:
-            current_app.logger.error(f"邮件发送失败: {str(e)}")
+            current_app.logger.error(f"邮件发送失�? {str(e)}")
 
 def send_email(subject, recipients, body, html=None):
-    """发送邮件
+    """发送邮�?
     
     参数:
         subject: 邮件主题
-        recipients: 收件人列表
-        body: 纯文本内容
+        recipients: 收件人列�?
+        body: 纯文本内�?
         html: HTML内容
     """
     app = current_app._get_current_object()
@@ -31,14 +31,14 @@ def send_email(subject, recipients, body, html=None):
     if html:
         msg.html = html
     
-    # 使用线程异步发送邮件
+    # 使用线程异步发送邮�?
     thread = threading.Thread(target=send_async_email, args=[app, msg])
     thread.start()
     return thread
 
 @mail_bp.route('/test', methods=['POST'])
 def test_email():
-    """测试邮件发送"""
+    """测试邮件发�?""
     data = request.get_json()
     if not data or 'email' not in data:
         return jsonify({'success': False, 'message': '请提供有效的邮箱地址'})
@@ -46,17 +46,17 @@ def test_email():
     email = data['email']
     subject = "校园众创平台 - 测试邮件"
     body = """
-    您好，
+    您好�?
     
-    这是一封测试邮件，用于验证校园众创平台的邮件发送功能是否正常。
+    这是一封测试邮件，用于验证校园众创平台的邮件发送功能是否正常�?
     
-    如果您收到此邮件，表示邮件系统工作正常。
+    如果您收到此邮件，表示邮件系统工作正常�?
     
     校园众创平台团队
     """
     
     try:
         send_email(subject=subject, recipients=[email], body=body)
-        return jsonify({'success': True, 'message': '测试邮件已发送'})
+        return jsonify({'success': True, 'message': '测试邮件已发�?})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'邮件发送失败: {str(e)}'}) 
+        return jsonify({'success': False, 'message': f'邮件发送失�? {str(e)}'}) 

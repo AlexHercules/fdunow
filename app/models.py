@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from flask_login import UserMixin
-from application import db
+from app.extensions import db
 import json
 
 # 创建索引辅助函数
@@ -9,7 +9,7 @@ def create_index(name, columns):
 
 # 权限常量
 class Permissions:
-    """权限常量类"""
+    """权限常量�?""
     # 基本权限
     READ = 'read'                      # 读取内容权限
     COMMENT = 'comment'                # 评论权限
@@ -30,11 +30,11 @@ class Permissions:
     JOIN_TEAM = 'join_team'            # 加入团队权限
     MANAGE_TEAM = 'manage_team'        # 管理团队权限
     
-    # 管理员权限
+    # 管理员权�?
     MODERATE = 'moderate'              # 内容审核权限
-    ADMIN = 'admin'                    # 管理员权限
+    ADMIN = 'admin'                    # 管理员权�?
     
-    # 系统权限组
+    # 系统权限�?
     STUDENT_PERMISSIONS = [READ, COMMENT, CREATE_PROJECT, EDIT_PROFILE, FOLLOW, 
                          JOIN_TEAM, FUND_PROJECT]
     
@@ -46,7 +46,7 @@ class Permissions:
     
     @classmethod
     def get_permissions_for_role(cls, role_name):
-        """根据角色名获取权限列表"""
+        """根据角色名获取权限列�?""
         role_map = {
             'student': cls.STUDENT_PERMISSIONS,
             'developer': cls.DEVELOPER_PERMISSIONS,
@@ -84,15 +84,15 @@ class User(UserMixin, db.Model):
     phone_visibility = db.Column(db.String(20), default='private')
     project_visibility = db.Column(db.String(20), default='public')
     
-    # 在线状态
+    # 在线状�?
     is_online = db.Column(db.Boolean, default=False)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # 角色与权限
+    # 角色与权�?
     roles = db.relationship('Role', secondary='user_roles', backref=db.backref('users', lazy='dynamic'))
     
     # 关系
-    # 团队和项目关系在各自模型中定义
+    # 团队和项目关系在各自模型中定�?
     
     # 创建索引
     __table_args__ = (
@@ -107,7 +107,7 @@ class User(UserMixin, db.Model):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            # 如果管理员邮箱，设为管理员角色
+            # 如果管理员邮箱，设为管理员角�?
             if self.email and self.email.endswith('@admin.fudan.edu.cn'):
                 admin_role = Role.query.filter_by(name='admin').first()
                 if admin_role:
@@ -120,28 +120,28 @@ class User(UserMixin, db.Model):
                     self.role = default_role
     
     def has_role(self, role_name):
-        """检查用户是否拥有指定角色"""
+        """检查用户是否拥有指定角�?""
         return self.role and self.role.name == role_name
     
     def has_permission(self, permission):
-        """检查用户是否拥有指定权限"""
-        # 管理员拥有所有权限
+        """检查用户是否拥有指定权�?""
+        # 管理员拥有所有权�?
         if self.is_admin:
             return True
         
-        # 通过角色检查权限
+        # 通过角色检查权�?
         if self.role and self.role.has_permission(permission):
             return True
         
         return False
     
     def can(self, permission):
-        """权限检查的简化方法"""
+        """权限检查的简化方�?""
         return self.has_permission(permission)
     
     @property
     def is_administrator(self):
-        """检查是否为管理员"""
+        """检查是否为管理�?""
         return self.is_admin
     
     def promote_to_role(self, role_name):
@@ -161,7 +161,7 @@ class User(UserMixin, db.Model):
         """检查给定用户是否是好友"""
         if not user or user.id == self.id:
             return False
-        # 查找对应的好友关系
+        # 查找对应的好友关�?
         friendship = FriendRequest.query.filter(
             ((FriendRequest.sender_id == self.id) & (FriendRequest.receiver_id == user.id)) |
             ((FriendRequest.sender_id == user.id) & (FriendRequest.receiver_id == self.id))
@@ -169,10 +169,10 @@ class User(UserMixin, db.Model):
         return friendship is not None
     
     def has_sent_request_to(self, user):
-        """检查是否已向给定用户发送好友请求"""
+        """检查是否已向给定用户发送好友请�?""
         if not user or user.id == self.id:
             return False
-        # 查找是否有发送给该用户的待处理请求
+        # 查找是否有发送给该用户的待处理请�?
         return FriendRequest.query.filter_by(
             sender_id=self.id,
             receiver_id=user.id,
@@ -180,7 +180,7 @@ class User(UserMixin, db.Model):
         ).first() is not None
     
     def has_received_request_from(self, user):
-        """检查是否已收到给定用户的好友请求"""
+        """检查是否已收到给定用户的好友请�?""
         if not user or user.id == self.id:
             return False
         # 查找是否有来自该用户的待处理请求
@@ -192,22 +192,22 @@ class User(UserMixin, db.Model):
     
     @property
     def friends(self):
-        """获取所有好友"""
-        # 获取已接受的好友请求，其中自己是发送者
+        """获取所有好�?""
+        # 获取已接受的好友请求，其中自己是发送�?
         sent_friendships = FriendRequest.query.filter_by(
             sender_id=self.id,
             status='accepted'
         ).all()
         sent_friend_ids = [friendship.receiver_id for friendship in sent_friendships]
         
-        # 获取已接受的好友请求，其中自己是接收者
+        # 获取已接受的好友请求，其中自己是接收�?
         received_friendships = FriendRequest.query.filter_by(
             receiver_id=self.id,
             status='accepted'
         ).all()
         received_friend_ids = [friendship.sender_id for friendship in received_friendships]
         
-        # 合并好友ID并查询用户
+        # 合并好友ID并查询用�?
         friend_ids = set(sent_friend_ids + received_friend_ids)
         return User.query.filter(User.id.in_(friend_ids)).all()
     
@@ -243,7 +243,7 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
-    permissions = db.Column(db.Text)  # 存储JSON格式的权限列表
+    permissions = db.Column(db.Text)  # 存储JSON格式的权限列�?
     description = db.Column(db.String(255))
     
     # 与用户的关系
@@ -251,26 +251,26 @@ class Role(db.Model):
     
     @staticmethod
     def insert_roles():
-        """初始化角色数据"""
+        """初始化角色数�?""
         roles = {
             'student': {
                 'permissions': Permissions.STUDENT_PERMISSIONS,
-                'description': '普通学生用户',
+                'description': '普通学生用�?,
                 'default': True
             },
             'developer': {
                 'permissions': Permissions.DEVELOPER_PERMISSIONS,
-                'description': '项目开发者',
+                'description': '项目开发�?,
                 'default': False
             },
             'moderator': {
                 'permissions': Permissions.MODERATOR_PERMISSIONS,
-                'description': '内容审核员',
+                'description': '内容审核�?,
                 'default': False
             },
             'admin': {
                 'permissions': Permissions.ADMIN_PERMISSIONS,
-                'description': '管理员',
+                'description': '管理�?,
                 'default': False
             }
         }
@@ -289,14 +289,14 @@ class Role(db.Model):
         db.session.commit()
     
     def has_permission(self, permission):
-        """检查角色是否拥有指定权限"""
+        """检查角色是否拥有指定权�?""
         if self.permissions:
             permissions_list = json.loads(self.permissions)
             return permission in permissions_list
         return False
     
     def add_permission(self, permission):
-        """添加权限到角色"""
+        """添加权限到角�?""
         if self.permissions:
             permissions_list = json.loads(self.permissions)
             if permission not in permissions_list:
@@ -326,7 +326,7 @@ class Role(db.Model):
     def __repr__(self):
         return f'<Role {self.name}>'
 
-# 用户-角色关联表
+# 用户-角色关联�?
 user_roles = db.Table('user_roles',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('role_id', db.Integer, db.ForeignKey('roles.id'), primary_key=True)
@@ -360,12 +360,12 @@ class Message(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
     
-    # 多态关联字段
-    target_type = db.Column(db.String(20), index=True)  # 'user' 或 'group'
+    # 多态关联字�?
+    target_type = db.Column(db.String(20), index=True)  # 'user' �?'group'
     target_id = db.Column(db.Integer, index=True)  # 用户ID或群组ID
     
-    # 消息状态
-    is_read = db.Column(db.Boolean, default=False)  # 对于群消息，此字段忽略
+    # 消息状�?
+    is_read = db.Column(db.Boolean, default=False)  # 对于群消息，此字段忽�?
     
     # 关系
     sender = db.relationship('User', backref=db.backref('sent_messages', lazy='dynamic'))
@@ -383,7 +383,7 @@ class Message(db.Model):
     def get_private_chat(cls, user1_id, user2_id, limit=20, offset=0):
         """获取两个用户间的私聊消息"""
         # 私聊消息查询
-        # 查询 user1 -> user2 和 user2 -> user1 的消息
+        # 查询 user1 -> user2 �?user2 -> user1 的消�?
         query = cls.query.filter(
             ((cls.sender_id == user1_id) & (cls.target_type == 'user') & (cls.target_id == user2_id)) | 
             ((cls.sender_id == user2_id) & (cls.target_type == 'user') & (cls.target_id == user1_id))
@@ -436,19 +436,19 @@ class ChatGroup(db.Model):
         return f'<ChatGroup {self.name}>'
     
     def is_member(self, user):
-        """检查用户是否是群成员"""
+        """检查用户是否是群成�?""
         return user in self.members
     
     @property
     def member_count(self):
-        """群成员数量"""
+        """群成员数�?""
         return len(self.members)
     
     def get_messages(self, limit=20, offset=0):
         """获取群组消息"""
         return Message.get_group_chat(self.id, limit, offset)
 
-# 群组成员关联表
+# 群组成员关联�?
 group_members = db.Table('group_members',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('group_id', db.Integer, db.ForeignKey('chat_groups.id'), primary_key=True),
@@ -456,7 +456,7 @@ group_members = db.Table('group_members',
 )
 
 class VerificationCode(db.Model):
-    """邮箱验证码模型"""
+    """邮箱验证码模�?""
     __tablename__ = 'verification_codes'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -500,7 +500,7 @@ class ProjectComment(db.Model):
     
     @staticmethod
     def add_comment(user_id, project_id, content, is_anonymous=False, parent_id=None):
-        """添加评论的静态方法"""
+        """添加评论的静态方�?""
         comment = ProjectComment(
             user_id=user_id,
             project_id=project_id,
@@ -589,7 +589,7 @@ class CommentLike(db.Model):
     def __repr__(self):
         return f'<CommentLike {self.id}>'
 
-# 项目多媒体模型
+# 项目多媒体模�?
 class ProjectMedia(db.Model):
     """项目多媒体模型，用于管理项目相关的图片、视频、文档等"""
     __tablename__ = 'project_media'
@@ -601,7 +601,7 @@ class ProjectMedia(db.Model):
     file_size = db.Column(db.Integer)  # 文件大小，单位为字节
     mime_type = db.Column(db.String(100))  # MIME类型
     description = db.Column(db.String(255))
-    is_cover = db.Column(db.Boolean, default=False)  # 是否为项目封面
+    is_cover = db.Column(db.Boolean, default=False)  # 是否为项目封�?
     order = db.Column(db.Integer, default=0)  # 显示顺序
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -674,7 +674,7 @@ class ForumCategory(db.Model):
     
     @property
     def latest_topic(self):
-        """获取分类下的最新主题"""
+        """获取分类下的最新主�?""
         return self.topics.filter_by(is_hidden=False).order_by(ForumTopic.created_at.desc()).first()
 
 
@@ -708,7 +708,7 @@ class ForumTopic(db.Model):
         return f'<ForumTopic {self.id}: {self.title}>'
     
     def increase_view_count(self):
-        """增加浏览量"""
+        """增加浏览�?""
         self.views_count += 1
         return self
     

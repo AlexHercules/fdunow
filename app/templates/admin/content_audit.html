@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>内容审核 - 校园众创平台管理后台</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #3f51b5;
+            color: white;
+            padding-top: 20px;
+        }
+        .logo {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .logo h2 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        .menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .menu li {
+            margin-bottom: 5px;
+        }
+        .menu a {
+            display: block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .menu a:hover, .menu a.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .audit-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 5px;
+            border: 1px solid transparent;
+            border-bottom: none;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+            border-top: 2px solid #3f51b5;
+            margin-bottom: -1px;
+        }
+        .audit-list {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .audit-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 15px 0;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+        }
+        .audit-item:last-child {
+            border-bottom: none;
+        }
+        .audit-item-content {
+            flex: 1;
+        }
+        .audit-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .audit-item-meta {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .audit-item-description {
+            margin-bottom: 10px;
+        }
+        .audit-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #3f51b5;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success {
+            background-color: #4caf50;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #3f51b5;
+            color: #3f51b5;
+        }
+        .filter-container {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-label {
+            font-weight: bold;
+        }
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-box {
+            flex: 1;
+            display: flex;
+            max-width: 400px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            border-right: none;
+        }
+        .search-button {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3f51b5;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .review-form {
+            margin-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+        .review-form-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                padding-top: 10px;
+            }
+            .logo {
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+            }
+            .audit-item {
+                grid-template-columns: 1fr;
+            }
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .stat-item {
+                flex: 1 0 calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h2>校园众创平台</h2>
+                <p>管理后台</p>
+            </div>
+            <ul class="menu">
+                <li><a href="{{ url_for('admin.index') }}">控制面板</a></li>
+                <li><a href="{{ url_for('admin.users') }}">用户管理</a></li>
+                <li><a href="{{ url_for('admin.projects') }}">项目管理</a></li>
+                <li><a href="{{ url_for('admin.teams') }}">团队管理</a></li>
+                <li><a href="{{ url_for('admin.payments') }}">支付管理</a></li>
+                <li><a href="{{ url_for('admin.statistics') }}">数据统计</a></li>
+                <li><a href="{{ url_for('admin.content_audit') }}" class="active">内容审核</a></li>
+                <li><a href="{{ url_for('main.index') }}">返回前台</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>内容审核</h1>
+                <div>
+                    <button class="btn btn-outline">审核规则设置</button>
+                    <button class="btn">自动审核设置</button>
+                </div>
+            </div>
+            
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">25</div>
+                    <div class="stat-label">待审核项目</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">42</div>
+                    <div class="stat-label">待审核评论</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">95%</div>
+                    <div class="stat-label">审核通过率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">2.5h</div>
+                    <div class="stat-label">平均审核时间</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">违规处理</div>
+                </div>
+            </div>
+            
+            <div class="audit-tabs">
+                <div class="tab active">待审核项目</div>
+                <div class="tab">待审核评论</div>
+                <div class="tab">已审核内容</div>
+                <div class="tab">违规记录</div>
+            </div>
+            
+            <div class="filter-container">
+                <span class="filter-label">排序：</span>
+                <select>
+                    <option>提交时间（最新）</option>
+                    <option>提交时间（最早）</option>
+                    <option>优先级（高到低）</option>
+                </select>
+                
+                <span class="filter-label">分类：</span>
+                <select>
+                    <option>全部类别</option>
+                    <option>科技创新</option>
+                    <option>公益活动</option>
+                    <option>学术研究</option>
+                    <option>文化艺术</option>
+                </select>
+                
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="搜索项目名称或创建者...">
+                    <button class="search-button">搜索</button>
+                </div>
+            </div>
+            
+            <div class="audit-list">
+                {% for project in pending_projects %}
+                <div class="audit-item">
+                    <div class="audit-item-content">
+                        <div class="audit-item-title">{{ project.title }}</div>
+                        <div class="audit-item-meta">
+                            <span>创建者：{{ project.creator }}</span> | 
+                            <span>提交时间：{{ project.date }}</span> | 
+                            <span>类别：科技创新</span>
+                        </div>
+                        <div class="audit-item-description">
+                            这是一个通过技术手段解决校园导航问题的创新项目。旨在帮助新生和访客更快地熟悉校园环境，提高出行效率。
+                        </div>
+                        <button class="btn btn-outline" onclick="toggleReviewForm({{ project.id }})">详细审核</button>
+                        
+                        <div id="review-form-{{ project.id }}" class="review-form" style="display: none;">
+                            <div class="review-form-header">审核表单</div>
+                            <div class="form-group">
+                                <label>审核备注：</label>
+                                <textarea placeholder="请输入审核意见..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>审核结果：</label>
+                                <select>
+                                    <option>通过</option>
+                                    <option>需要修改</option>
+                                    <option>拒绝</option>
+                                </select>
+                            </div>
+                            <button class="btn">提交审核结果</button>
+                        </div>
+                    </div>
+                    <div class="audit-item-actions">
+                        <button class="btn btn-success">通过</button>
+                        <button class="btn btn-danger">拒绝</button>
+                        <button class="btn btn-outline">需修改</button>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- 更多待审核项目... -->
+                <div class="audit-item">
+                    <div class="audit-item-content">
+                        <div class="audit-item-title">校园二手交易平台</div>
+                        <div class="audit-item-meta">
+                            <span>创建者：李四</span> | 
+                            <span>提交时间：2025-01-02</span> | 
+                            <span>类别：公益活动</span>
+                        </div>
+                        <div class="audit-item-description">
+                            建立一个专为复旦学生设计的二手物品交易平台，促进闲置资源再利用，培养环保意识。
+                        </div>
+                        <button class="btn btn-outline" onclick="toggleReviewForm(3)">详细审核</button>
+                        
+                        <div id="review-form-3" class="review-form" style="display: none;">
+                            <div class="review-form-header">审核表单</div>
+                            <div class="form-group">
+                                <label>审核备注：</label>
+                                <textarea placeholder="请输入审核意见..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>审核结果：</label>
+                                <select>
+                                    <option>通过</option>
+                                    <option>需要修改</option>
+                                    <option>拒绝</option>
+                                </select>
+                            </div>
+                            <button class="btn">提交审核结果</button>
+                        </div>
+                    </div>
+                    <div class="audit-item-actions">
+                        <button class="btn btn-success">通过</button>
+                        <button class="btn btn-danger">拒绝</button>
+                        <button class="btn btn-outline">需修改</button>
+                    </div>
+                </div>
+                
+                <div class="audit-item">
+                    <div class="audit-item-content">
+                        <div class="audit-item-title">复旦历史文化展览</div>
+                        <div class="audit-item-meta">
+                            <span>创建者：王五</span> | 
+                            <span>提交时间：2025-01-03</span> | 
+                            <span>类别：文化艺术</span>
+                        </div>
+                        <div class="audit-item-description">
+                            策划一场展现复旦大学百年历史与文化发展的特别展览，包括历史文物展示和互动体验区。
+                        </div>
+                        <button class="btn btn-outline" onclick="toggleReviewForm(4)">详细审核</button>
+                        
+                        <div id="review-form-4" class="review-form" style="display: none;">
+                            <div class="review-form-header">审核表单</div>
+                            <div class="form-group">
+                                <label>审核备注：</label>
+                                <textarea placeholder="请输入审核意见..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>审核结果：</label>
+                                <select>
+                                    <option>通过</option>
+                                    <option>需要修改</option>
+                                    <option>拒绝</option>
+                                </select>
+                            </div>
+                            <button class="btn">提交审核结果</button>
+                        </div>
+                    </div>
+                    <div class="audit-item-actions">
+                        <button class="btn btn-success">通过</button>
+                        <button class="btn btn-danger">拒绝</button>
+                        <button class="btn btn-outline">需修改</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleReviewForm(projectId) {
+            const form = document.getElementById("review-form-" + projectId);
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

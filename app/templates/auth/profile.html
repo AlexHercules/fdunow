@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人资料 - 校园众创平台</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav {
+            background-color: #303f9f;
+            padding: 0.5rem;
+        }
+        nav ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 1rem;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .profile-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .sidebar {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        .main-content {
+            flex: 3;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #9e9e9e;
+            overflow: hidden;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-name {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .profile-role {
+            text-align: center;
+            color: #757575;
+            margin-bottom: 1.5rem;
+        }
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .menu-list li {
+            margin-bottom: 0.5rem;
+        }
+        .menu-list li a {
+            display: block;
+            padding: 0.8rem;
+            text-decoration: none;
+            color: #333;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .menu-list li a:hover {
+            background-color: #f5f5f5;
+        }
+        .menu-list li a.active {
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            font-weight: bold;
+        }
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+        .tab-button {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #757575;
+            position: relative;
+        }
+        .tab-button.active {
+            color: #3f51b5;
+        }
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #3f51b5;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3f51b5;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .project-card, .team-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .project-card h3, .team-card h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+        .project-status, .team-status {
+            display: inline-block;
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .status-active {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-pending {
+            background-color: #fff8e1;
+            color: #f57f17;
+        }
+        .status-completed {
+            background-color: #e0e0e0;
+            color: #424242;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #4caf50;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+        .message-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .message-title {
+            font-weight: 500;
+        }
+        .message-date {
+            color: #757575;
+            font-size: 0.9rem;
+        }
+        .message-content {
+            margin-bottom: 0.5rem;
+        }
+        .message-actions a {
+            color: #3f51b5;
+            text-decoration: none;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            background-color: #333;
+            color: white;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .alert-info {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        .alert-warning {
+            background-color: #fff8e1;
+            color: #f57f17;
+        }
+        @media (max-width: 768px) {
+            .profile-container {
+                flex-direction: column;
+            }
+            .sidebar, .main-content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>校园众创平台</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="/">首页</a></li>
+            <li><a href="/crowdfunding">众筹项目</a></li>
+            <li><a href="/team">团队组建</a></li>
+            <li><a href="/payment">支付中心</a></li>
+            <li><a href="/about">关于我们</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <div class="profile-container">
+            <div class="sidebar">
+                <div class="profile-avatar">
+                    <!-- 如果有头像就显示，否则显示用户名首字母 -->
+                    <!-- <img src="avatar.jpg" alt="用户头像"> -->
+                    {{ user.username[0] if user and user.username else 'U' }}
+                </div>
+                <div class="profile-name">{{ user.username if user else '用户名' }}</div>
+                <div class="profile-role">{{ user.role if user else '普通用户' }}</div>
+                
+                <ul class="menu-list">
+                    <li><a href="#" class="active">个人资料</a></li>
+                    <li><a href="#">我的项目</a></li>
+                    <li><a href="#">我的团队</a></li>
+                    <li><a href="#">我的支持</a></li>
+                    <li><a href="#">消息中心</a></li>
+                    <li><a href="#">账户设置</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}">退出登录</a></li>
+                </ul>
+            </div>
+            
+            <div class="main-content">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="openTab('profile')">基本资料</button>
+                    <button class="tab-button" onclick="openTab('projects')">我的项目</button>
+                    <button class="tab-button" onclick="openTab('teams')">我的团队</button>
+                    <button class="tab-button" onclick="openTab('donations')">我的支持</button>
+                    <button class="tab-button" onclick="openTab('messages')">消息中心</button>
+                </div>
+                
+                <!-- 基本资料 -->
+                <div id="profile" class="tab-content active">
+                    <div class="alert alert-info">
+                        完善您的个人资料可以提高团队协作和项目成功的机会！
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('auth.update_profile') }}">
+                        <div class="form-group">
+                            <label for="username">用户名</label>
+                            <input type="text" id="username" name="username" value="{{ user.username if user else '' }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">电子邮箱</label>
+                            <input type="email" id="email" name="email" value="{{ user.email if user else '' }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="student_id">学号</label>
+                            <input type="text" id="student_id" name="student_id" value="{{ user.student_id if user and user.student_id else '' }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="department">院系</label>
+                            <input type="text" id="department" name="department" value="{{ user.department if user and user.department else '' }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bio">个人简介</label>
+                            <textarea id="bio" name="bio">{{ user.bio if user and user.bio else '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="skills">专业技能</label>
+                            <textarea id="skills" name="skills" placeholder="请输入您擅长的技能，如：编程、UI设计、市场营销等">{{ user.skills if user and user.skills else '' }}</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">保存更改</button>
+                    </form>
+                </div>
+                
+                <!-- 我的项目 -->
+                <div id="projects" class="tab-content">
+                    <div class="project-card">
+                        <h3>创新教育APP</h3>
+                        <span class="project-status status-active">众筹中</span>
+                        <p>一款面向复旦学生的创新教育应用，提供创业课程、实践机会和资源对接。</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%;"></div>
+                        </div>
+                        <div>已筹：¥6,500 / 目标：¥10,000</div>
+                        <div class="card-footer">
+                            <div>发起时间：2023-09-15</div>
+                            <div>
+                                <a href="#" class="btn btn-secondary">编辑</a>
+                                <a href="#" class="btn">查看详情</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>校园二手交易平台</h3>
+                        <span class="project-status status-completed">已完成</span>
+                        <p>为复旦学生提供一个安全、便捷的二手物品交易平台，促进资源循环利用。</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                        <div>已筹：¥15,000 / 目标：¥15,000</div>
+                        <div class="card-footer">
+                            <div>发起时间：2023-05-20</div>
+                            <div>
+                                <a href="#" class="btn">查看详情</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="/crowdfunding/create" class="btn" style="margin-top: 1rem;">创建新项目</a>
+                </div>
+                
+                <!-- 我的团队 -->
+                <div id="teams" class="tab-content">
+                    <div class="team-card">
+                        <h3>创新技术小组</h3>
+                        <span class="team-status status-active">招募中</span>
+                        <p>我们是一个专注于开发创新技术产品的团队，目前正在开发校园社交应用。</p>
+                        <div>成员：5/8</div>
+                        <div>需要角色：UI设计师、后端开发、市场推广</div>
+                        <div class="card-footer">
+                            <div>创建时间：2023-08-10</div>
+                            <div>
+                                <a href="#" class="btn btn-secondary">编辑</a>
+                                <a href="#" class="btn">查看详情</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="/team/create" class="btn" style="margin-top: 1rem;">创建新团队</a>
+                </div>
+                
+                <!-- 我的支持 -->
+                <div id="donations" class="tab-content">
+                    <div class="project-card">
+                        <h3>校园环保倡议</h3>
+                        <span class="project-status status-active">众筹中</span>
+                        <p>一项旨在提高校园环保意识的倡议，包括垃圾分类宣传和可回收物品回收站建设。</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+                        <div>已筹：¥4,500 / 目标：¥10,000</div>
+                        <div class="card-footer">
+                            <div>支持金额：¥200</div>
+                            <div>支持时间：2023-10-05</div>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>学生创业大赛</h3>
+                        <span class="project-status status-completed">已完成</span>
+                        <p>一场面向全校学生的创业大赛，旨在发掘优秀创业项目并提供资金支持。</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                        <div>已筹：¥20,000 / 目标：¥20,000</div>
+                        <div class="card-footer">
+                            <div>支持金额：¥500</div>
+                            <div>支持时间：2023-07-15</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 消息中心 -->
+                <div id="messages" class="tab-content">
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-title">项目支持确认</div>
+                            <div class="message-date">2023-10-05</div>
+                        </div>
+                        <div class="message-content">
+                            感谢您对"校园环保倡议"项目的支持！您的捐款￥200已确认，您将收到项目的最新进展通知。
+                        </div>
+                        <div class="message-actions">
+                            <a href="#">查看详情</a>
+                            <a href="#">标记为已读</a>
+                        </div>
+                    </div>
+                    
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-title">团队申请通知</div>
+                            <div class="message-date">2023-09-20</div>
+                        </div>
+                        <div class="message-content">
+                            张三已申请加入您的团队"创新技术小组"，申请角色：UI设计师。
+                        </div>
+                        <div class="message-actions">
+                            <a href="#">接受</a>
+                            <a href="#">拒绝</a>
+                            <a href="#">查看详情</a>
+                        </div>
+                    </div>
+                    
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-title">项目更新通知</div>
+                            <div class="message-date">2023-09-15</div>
+                        </div>
+                        <div class="message-content">
+                            您支持的项目"学生创业大赛"有新的更新：大赛决赛将于10月15日在学生活动中心举行，欢迎前来观看！
+                        </div>
+                        <div class="message-actions">
+                            <a href="#">查看详情</a>
+                            <a href="#">标记为已读</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 校园众创平台 - 复旦大学学生创新创业中心</p>
+    </footer>
+    
+    <script>
+        function openTab(tabName) {
+            // 隐藏所有标签内容
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // 取消所有标签按钮的激活状态
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            // 显示选中的标签内容并激活对应按钮
+            document.getElementById(tabName).classList.add('active');
+            
+            // 找到并激活对应的按钮
+            for (let i = 0; i < tabButtons.length; i++) {
+                if (tabButtons[i].textContent.toLowerCase().includes(tabName) ||
+                    (tabName === 'profile' && tabButtons[i].textContent.includes('基本资料'))) {
+                    tabButtons[i].classList.add('active');
+                    break;
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,637 @@
+{% extends 'base.html' %}
+
+{% block title %}我的捐款记录 - 校园众筹平台{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-5 fw-bold">我的捐款记录</h1>
+            <p class="lead">查看您对校园项目的所有支持历史</p>
+        </div>
+    </div>
+    
+    <!-- 筛选器 -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">筛选条件</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">状态</label>
+                            <select id="status" class="form-select">
+                                <option value="">全部</option>
+                                <option value="pending">待支付</option>
+                                <option value="completed">已完成</option>
+                                <option value="failed">失败</option>
+                                <option value="refunded">已退款</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">开始日期</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">结束日期</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">应用筛选</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 捐款列表 -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">捐款记录</h5>
+                    <span id="donation-count" class="badge bg-light text-primary">加载中...</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="donations-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载您的捐款记录...</p>
+                    </div>
+                    
+                    <div id="donations-empty" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-donate text-muted fa-4x mb-3"></i>
+                        <h4>暂无捐款记录</h4>
+                        <p>您还没有支持过任何项目</p>
+                        <a href="{{ url_for('crowdfunding.index') }}" class="btn btn-primary mt-2">浏览项目</a>
+                    </div>
+                    
+                    <div id="donations-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>项目</th>
+                                        <th>金额</th>
+                                        <th>日期</th>
+                                        <th>状态</th>
+                                        <th>支付方式</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="donations-table">
+                                    <!-- JS将填充捐款数据 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <div class="d-flex justify-content-between align-items-center p-3">
+                            <div class="pagination-info">
+                                显示 <span id="pagination-start">1</span>-<span id="pagination-end">10</span> 条，共 <span id="pagination-total">0</span> 条
+                            </div>
+                            <nav aria-label="捐款分页">
+                                <ul class="pagination mb-0" id="pagination">
+                                    <!-- JS将填充分页链接 -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 捐款详情模态框 -->
+    <div class="modal fade" id="donationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">捐款详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img id="modal-project-image" src="" alt="项目图片" class="img-fluid rounded mb-3">
+                        </div>
+                        <div class="col-md-8">
+                            <h4 id="modal-project-title"></h4>
+                            <p class="text-muted" id="modal-project-creator"></p>
+                            
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">交易号：</span>
+                                    <span id="modal-transaction-id"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">支付金额：</span>
+                                    <span id="modal-amount" class="text-primary fw-bold"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">支付方式：</span>
+                                    <span id="modal-payment-method"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">交易状态：</span>
+                                    <span id="modal-status"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">支付时间：</span>
+                                    <span id="modal-created-at"></span>
+                                </div>
+                                <div id="modal-description-container" class="mb-2">
+                                    <span class="fw-bold">留言：</span>
+                                    <p id="modal-description" class="mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="modal-footer-actions">
+                    <!-- 根据交易状态显示不同的操作按钮 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 退款申请模态框 -->
+    <div class="modal fade" id="refundModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">申请退款</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="refund-form">
+                        <input type="hidden" id="refund-transaction-id">
+                        <div class="mb-3">
+                            <label for="refund-reason" class="form-label">退款原因 <span class="text-danger">*</span></label>
+                            <textarea id="refund-reason" class="form-control" rows="3" required></textarea>
+                            <div class="form-text">请详细说明申请退款的原因，以便我们能更好地处理您的请求</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">上传证据（可选）</label>
+                            <input class="form-control" type="file" id="refund-evidence" multiple>
+                            <div class="form-text">可上传截图、聊天记录等支持您退款申请的证据</div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 退款说明：
+                            <ul class="mb-0 small">
+                                <li>项目完成率低于30%时可获得95%退款</li>
+                                <li>项目完成率低于60%时可获得80%退款</li>
+                                <li>项目完成率超过60%时可获得70%退款</li>
+                                <li>项目已结束超过30天的捐款不支持退款</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="submit-refund">提交申请</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 加载捐款列表
+        loadDonations();
+        
+        // 绑定筛选表单事件
+        document.getElementById('filter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            loadDonations(1);
+        });
+        
+        // 绑定退款表单提交
+        document.getElementById('submit-refund').addEventListener('click', submitRefund);
+    });
+    
+    // 加载捐款列表
+    function loadDonations(page = 1) {
+        const status = document.getElementById('status').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        // 构建查询参数
+        let params = new URLSearchParams();
+        params.append('page', page);
+        if (status) params.append('status', status);
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        
+        // 显示加载中状态
+        document.getElementById('donations-loading').style.display = 'block';
+        document.getElementById('donations-empty').style.display = 'none';
+        document.getElementById('donations-table-container').style.display = 'none';
+        
+        // 发起API请求
+        fetch(`/payment/api/users/{{ current_user.id }}/donations?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载状态
+                document.getElementById('donations-loading').style.display = 'none';
+                
+                // 更新捐款数量显示
+                document.getElementById('donation-count').textContent = 
+                    `共 ${data.pagination.total} 条记录`;
+                
+                if (data.donations.length === 0) {
+                    // 显示空状态
+                    document.getElementById('donations-empty').style.display = 'block';
+                } else {
+                    // 显示捐款表格
+                    document.getElementById('donations-table-container').style.display = 'block';
+                    
+                    // 渲染捐款数据
+                    renderDonations(data.donations);
+                    
+                    // 渲染分页
+                    renderPagination(data.pagination);
+                }
+            })
+            .catch(error => {
+                console.error('加载捐款失败:', error);
+                document.getElementById('donations-loading').style.display = 'none';
+                alert('加载数据失败，请刷新页面重试');
+            });
+    }
+    
+    // 渲染捐款列表
+    function renderDonations(donations) {
+        const tableBody = document.getElementById('donations-table');
+        tableBody.innerHTML = '';
+        
+        donations.forEach(donation => {
+            const statusBadge = getStatusBadge(donation.status);
+            const paymentMethod = getPaymentMethodName(donation.payment_method);
+            const projectInfo = donation.project ? 
+                `<div class="d-flex align-items-center">
+                    <img src="${donation.project.image_url || '/static/img/default-project.jpg'}" alt="${donation.project.title}" class="rounded me-2" width="50" height="50" style="object-fit: cover;">
+                    <div>
+                        <div class="fw-bold">${donation.project.title}</div>
+                        <small class="text-muted">#${donation.id}</small>
+                    </div>
+                </div>` : 
+                `<div>未知项目 <small class="text-muted">#${donation.id}</small></div>`;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${projectInfo}</td>
+                <td>¥${parseFloat(donation.amount).toFixed(2)}</td>
+                <td>${formatDate(donation.created_at)}</td>
+                <td>${statusBadge}</td>
+                <td>${paymentMethod}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="showDonationDetails(${JSON.stringify(donation).replace(/"/g, '&quot;')})">
+                        详情
+                    </button>
+                    ${donation.status === 'completed' ? 
+                        `<button class="btn btn-sm btn-outline-warning" onclick="showRefundForm(${donation.id})">
+                            退款
+                        </button>` : ''}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+        
+        // 更新分页信息显示
+        const paginationInfo = document.querySelector('.pagination-info');
+        const start = (donations.length > 0) ? 
+            ((currentPage - 1) * pageSize + 1) : 0;
+        const end = start + donations.length - 1;
+        document.getElementById('pagination-start').textContent = start;
+        document.getElementById('pagination-end').textContent = end;
+        document.getElementById('pagination-total').textContent = totalItems;
+    }
+    
+    // 渲染分页控件
+    function renderPagination(pagination) {
+        const paginationElement = document.getElementById('pagination');
+        paginationElement.innerHTML = '';
+        
+        // 保存当前分页状态
+        currentPage = pagination.page;
+        pageSize = pagination.per_page;
+        totalItems = pagination.total;
+        totalPages = pagination.pages;
+        
+        // 上一页按钮
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${currentPage <= 1 ? 'disabled' : ''}`;
+        prevItem.innerHTML = `
+            <a class="page-link" href="#" aria-label="上一页" ${currentPage > 1 ? `onclick="loadDonations(${currentPage - 1}); return false;"` : ''}>
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        `;
+        paginationElement.appendChild(prevItem);
+        
+        // 页码按钮
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageItem.innerHTML = `
+                <a class="page-link" href="#" onclick="loadDonations(${i}); return false;">${i}</a>
+            `;
+            paginationElement.appendChild(pageItem);
+        }
+        
+        // 下一页按钮
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${currentPage >= totalPages ? 'disabled' : ''}`;
+        nextItem.innerHTML = `
+            <a class="page-link" href="#" aria-label="下一页" ${currentPage < totalPages ? `onclick="loadDonations(${currentPage + 1}); return false;"` : ''}>
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        `;
+        paginationElement.appendChild(nextItem);
+    }
+    
+    // 显示捐款详情
+    function showDonationDetails(donation) {
+        // 填充模态框内容
+        document.getElementById('modal-project-title').textContent = donation.project ? donation.project.title : '未知项目';
+        document.getElementById('modal-project-image').src = donation.project ? 
+            (donation.project.image_url || '/static/img/default-project.jpg') : '/static/img/default-project.jpg';
+        document.getElementById('modal-transaction-id').textContent = donation.id;
+        document.getElementById('modal-amount').textContent = `¥${parseFloat(donation.amount).toFixed(2)}`;
+        document.getElementById('modal-payment-method').textContent = getPaymentMethodName(donation.payment_method);
+        document.getElementById('modal-status').textContent = getStatusText(donation.status);
+        document.getElementById('modal-status').className = getStatusClass(donation.status);
+        document.getElementById('modal-created-at').textContent = formatDateTime(donation.created_at);
+        
+        // 处理描述/留言
+        const descContainer = document.getElementById('modal-description-container');
+        if (donation.description) {
+            descContainer.style.display = 'block';
+            document.getElementById('modal-description').textContent = donation.description;
+        } else {
+            descContainer.style.display = 'none';
+        }
+        
+        // 根据交易状态显示不同的操作按钮
+        const footerActions = document.getElementById('modal-footer-actions');
+        footerActions.innerHTML = '';
+        
+        // 关闭按钮
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn btn-secondary';
+        closeButton.setAttribute('data-bs-dismiss', 'modal');
+        closeButton.textContent = '关闭';
+        footerActions.appendChild(closeButton);
+        
+        // 添加操作按钮
+        if (donation.status === 'completed') {
+            // 申请退款按钮
+            const refundButton = document.createElement('button');
+            refundButton.type = 'button';
+            refundButton.className = 'btn btn-warning';
+            refundButton.textContent = '申请退款';
+            refundButton.onclick = function() {
+                // 关闭详情模态框
+                bootstrap.Modal.getInstance(document.getElementById('donationModal')).hide();
+                // 打开退款表单
+                showRefundForm(donation.id);
+            };
+            footerActions.appendChild(refundButton);
+            
+            // 查看项目按钮
+            if (donation.project) {
+                const viewProjectButton = document.createElement('button');
+                viewProjectButton.type = 'button';
+                viewProjectButton.className = 'btn btn-primary';
+                viewProjectButton.textContent = '查看项目';
+                viewProjectButton.onclick = function() {
+                    window.location.href = `/crowdfunding/project/${donation.project_id}`;
+                };
+                footerActions.appendChild(viewProjectButton);
+            }
+        } else if (donation.status === 'pending') {
+            // 继续支付按钮
+            const payButton = document.createElement('button');
+            payButton.type = 'button';
+            payButton.className = 'btn btn-primary';
+            payButton.textContent = '继续支付';
+            payButton.onclick = function() {
+                window.location.href = `/payment/process_payment/${donation.project_id}?transaction_id=${donation.id}`;
+            };
+            footerActions.appendChild(payButton);
+            
+            // 取消按钮
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'btn btn-danger';
+            cancelButton.textContent = '取消交易';
+            cancelButton.onclick = function() {
+                if (confirm('确定要取消此交易吗？')) {
+                    cancelTransaction(donation.id);
+                }
+            };
+            footerActions.appendChild(cancelButton);
+        }
+        
+        // 显示模态框
+        new bootstrap.Modal(document.getElementById('donationModal')).show();
+    }
+    
+    // 显示退款申请表单
+    function showRefundForm(transactionId) {
+        document.getElementById('refund-transaction-id').value = transactionId;
+        document.getElementById('refund-reason').value = '';
+        document.getElementById('refund-evidence').value = '';
+        
+        new bootstrap.Modal(document.getElementById('refundModal')).show();
+    }
+    
+    // 提交退款申请
+    function submitRefund() {
+        const transactionId = document.getElementById('refund-transaction-id').value;
+        const reason = document.getElementById('refund-reason').value.trim();
+        
+        if (!reason) {
+            alert('请填写退款原因');
+            return;
+        }
+        
+        // 处理证据文件上传
+        const evidenceFiles = document.getElementById('refund-evidence').files;
+        let evidenceUrls = [];
+        
+        // 在实际应用中，这里应该先上传文件到服务器
+        // 这里简化处理，实际项目需要先上传文件获取URL
+        
+        // 提交退款申请
+        fetch('/payment/api/refunds', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                transaction_id: transactionId,
+                reason: reason,
+                evidence_urls: evidenceUrls
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // 关闭模态框
+                bootstrap.Modal.getInstance(document.getElementById('refundModal')).hide();
+                
+                // 显示成功消息
+                alert('退款申请已提交，我们将尽快处理！');
+                
+                // 重新加载捐款列表
+                loadDonations();
+            } else {
+                throw new Error(data.error || '提交失败');
+            }
+        })
+        .catch(error => {
+            console.error('提交退款申请失败:', error);
+            alert(`提交失败: ${error.message}`);
+        });
+    }
+    
+    // 取消交易
+    function cancelTransaction(transactionId) {
+        // 发送取消交易请求
+        fetch(`/payment/api/donations/${transactionId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // 关闭模态框
+                bootstrap.Modal.getInstance(document.getElementById('donationModal')).hide();
+                
+                // 显示成功消息
+                alert('交易已取消');
+                
+                // 重新加载捐款列表
+                loadDonations();
+            } else {
+                throw new Error(data.error || '取消失败');
+            }
+        })
+        .catch(error => {
+            console.error('取消交易失败:', error);
+            alert(`取消失败: ${error.message}`);
+        });
+    }
+    
+    // 获取支付方式名称
+    function getPaymentMethodName(method) {
+        const methodMap = {
+            'alipay': '支付宝',
+            'wechat': '微信支付',
+            'campus_card': '校园卡',
+            'bank_transfer': '银行转账'
+        };
+        return methodMap[method] || method;
+    }
+    
+    // 获取状态徽章HTML
+    function getStatusBadge(status) {
+        let badgeClass = '';
+        let statusText = '';
+        
+        switch (status) {
+            case 'pending':
+                badgeClass = 'bg-warning';
+                statusText = '待支付';
+                break;
+            case 'completed':
+                badgeClass = 'bg-success';
+                statusText = '已完成';
+                break;
+            case 'failed':
+                badgeClass = 'bg-danger';
+                statusText = '失败';
+                break;
+            case 'refunded':
+                badgeClass = 'bg-info';
+                statusText = '已退款';
+                break;
+            case 'disputed':
+                badgeClass = 'bg-secondary';
+                statusText = '争议中';
+                break;
+            default:
+                badgeClass = 'bg-secondary';
+                statusText = status;
+        }
+        
+        return `<span class="badge ${badgeClass}">${statusText}</span>`;
+    }
+    
+    // 获取状态文本
+    function getStatusText(status) {
+        const statusMap = {
+            'pending': '待支付',
+            'completed': '已完成',
+            'failed': '失败',
+            'refunded': '已退款',
+            'disputed': '争议中'
+        };
+        return statusMap[status] || status;
+    }
+    
+    // 获取状态CSS类
+    function getStatusClass(status) {
+        switch (status) {
+            case 'pending': return 'text-warning fw-bold';
+            case 'completed': return 'text-success fw-bold';
+            case 'failed': return 'text-danger fw-bold';
+            case 'refunded': return 'text-info fw-bold';
+            case 'disputed': return 'text-secondary fw-bold';
+            default: return '';
+        }
+    }
+    
+    // 格式化日期
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('zh-CN');
+    }
+    
+    // 格式化日期时间
+    function formatDateTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('zh-CN');
+    }
+    
+    // 获取CSRF Token
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+    
+    // 分页变量
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalItems = 0;
+    let totalPages = 1;
+</script>
+{% endblock %} 

@@ -14,7 +14,7 @@ def handle_connect():
     # 将用户加入自己的私人频道
     join_room(f'user_{current_user.id}')
     
-    # 更新用户在线状态
+    # 更新用户在线状�?
     current_user.is_online = True
     current_user.last_seen = datetime.utcnow()
     db.session.commit()
@@ -36,7 +36,7 @@ def handle_disconnect():
     if not current_user.is_authenticated:
         return
     
-    # 更新用户离线状态
+    # 更新用户离线状�?
     current_user.is_online = False
     current_user.last_seen = datetime.utcnow()
     db.session.commit()
@@ -77,7 +77,7 @@ def handle_private_message(data):
     db.session.add(message)
     db.session.commit()
     
-    # 发送给接收者
+    # 发送给接收�?
     emit('new_private_message', {
         'message_id': message.id,
         'sender_id': current_user.id,
@@ -113,7 +113,7 @@ def handle_group_message(data):
     if not group or not group.is_member(current_user):
         return False
     
-    # 创建群消息
+    # 创建群消�?
     message = Message(
         content=content,
         sender_id=current_user.id,
@@ -123,7 +123,7 @@ def handle_group_message(data):
     db.session.add(message)
     db.session.commit()
     
-    # 发送给群组所有成员
+    # 发送给群组所有成�?
     emit('new_group_message', {
         'message_id': message.id,
         'group_id': group_id,
@@ -165,7 +165,7 @@ def handle_leave_group(data):
 
 @socketio.on('read_message')
 def handle_read_message(data):
-    """标记消息为已读"""
+    """标记消息为已�?""
     if not current_user.is_authenticated:
         return False
     
@@ -180,7 +180,7 @@ def handle_read_message(data):
     message.is_read = True
     db.session.commit()
     
-    # 通知发送者消息已读
+    # 通知发送者消息已�?
     emit('message_read', {
         'message_id': message_id
     }, room=f'user_{message.sender_id}')
@@ -197,7 +197,7 @@ def handle_read_all_messages(data):
     if not sender_id:
         return False
     
-    # 更新所有未读消息
+    # 更新所有未读消�?
     Message.mark_as_read(current_user.id, sender_id)
     
     return True 

@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}支付系统 - 校园众筹平台{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付中心 - 校园众创平台</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .main-content {
+            background-color: white;
+            padding: 2rem;
+            margin-top: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        nav {
+            background-color: #303f9f;
+            padding: 0.5rem;
+        }
+        nav ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 1rem;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .payment-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 5px;
+            border: 1px solid transparent;
+            border-bottom: none;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+            border-top: 2px solid #3f51b5;
+            margin-bottom: -1px;
+        }
+        .payment-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3f51b5;
+            color: white;
+            text-align: center;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-secondary {
+            background-color: #757575;
+            margin-right: 10px;
+        }
+        .payment-methods {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .payment-method {
+            margin: 0 10px;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .payment-method.active {
+            opacity: 1;
+            border-bottom: 2px solid #3f51b5;
+        }
+        .payment-method img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .security-note {
+            background-color: #f0f4ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>支付中心</h1>
+        <p>安全、便捷的校园众筹支付平台</p>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="/">首页</a></li>
+            <li><a href="/crowdfunding">众筹项目</a></li>
+            <li><a href="/team">团队组建</a></li>
+            <li><a href="/payment">支付中心</a></li>
+            <li><a href="/about">关于我们</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="payment-tabs">
+                <div class="tab active">项目支持</div>
+                <div class="tab">交易记录</div>
+                <div class="tab">财务报表</div>
+            </div>
+            
+            <div class="payment-form">
+                <h2>项目支持表单</h2>
+                
+                <div class="form-group">
+                    <label for="project">选择项目</label>
+                    <select id="project" name="project">
+                        <option value="">请选择要支持的项目</option>
+                        <option value="1">智能校园导航系统</option>
+                        <option value="2">校园二手交易平台</option>
+                        <option value="3">复旦历史文化展览</option>
+                        <option value="4">学生创新创业大赛</option>
+                        <option value="5">校园环保公益项目</option>
+                        <option value="6">学术期刊出版基金</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">支持金额</label>
+                    <input type="number" id="amount" name="amount" min="1" placeholder="请输入支持金额（元）">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">支持者姓名</label>
+                    <input type="text" id="name" name="name" placeholder="请输入您的姓名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="studentID">学号</label>
+                    <input type="text" id="studentID" name="studentID" placeholder="请输入您的学号">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">留言（可选）</label>
+                    <input type="text" id="message" name="message" placeholder="给项目团队的一句话">
+                </div>
+                
+                <div class="form-group">
+                    <label>选择支付方式</label>
+                    <div class="payment-methods">
+                        <div class="payment-method active">
+                            <img src="https://via.placeholder.com/80" alt="微信支付">
+                            <p>微信支付</p>
+                        </div>
+                        <div class="payment-method">
+                            <img src="https://via.placeholder.com/80" alt="支付宝">
+                            <p>支付宝</p>
+                        </div>
+                        <div class="payment-method">
+                            <img src="https://via.placeholder.com/80" alt="校园卡">
+                            <p>校园卡</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary">返回</button>
+                    <button type="submit" class="btn">确认支持</button>
+                </div>
+                
+                <div class="security-note">
+                    <h3>安全保障</h3>
+                    <p>您的所有支付信息都经过加密处理，我们不会保存您的任何敏感财务信息。校园众创平台所有支付由校方认证，确保资金安全透明。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 校园众创平台 - 复旦大学学生创新创业中心</p>
+    </footer>
+</body>
+</html>
+{% endblock %} 
