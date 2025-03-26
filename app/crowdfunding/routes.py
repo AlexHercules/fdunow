@@ -6,60 +6,81 @@ from flask_login import login_required, current_user
 from app.models import User, CrowdfundingProject, CrowdfundingDonation
 from app.extensions import db
 from datetime import datetime
+from app.crowdfunding import crowdfunding_bp
+from app.models.project import Project, ProjectCategory, ProjectUpdate, ProjectComment
+from app.models.payment import ProjectReward, Payment
 
 crowdfunding_bp = Blueprint('crowdfunding', __name__, template_folder='templates/crowdfunding')
 
 @crowdfunding_bp.route('/')
 def index():
     """众筹项目列表页面"""
-    # 这里应该从数据库获取项目列表
-    # 由于模型可能还未完全实现，先使用静态数据
-    projects = [
-        {
-            'id': 1,
-            'title': '智能校园导航系统',
-            'image': 'project1.jpg',
-            'target_amount': 10000,
-            'current_amount': 6500,
-            'end_date': '2023-12-31',
-            'description': '基于AR技术的校园导航解决方案，帮助新生和访客快速找到目的地'
-        },
-        {
-            'id': 2,
-            'title': '校园二手交易平台',
-            'image': 'project2.jpg',
-            'target_amount': 5000,
-            'current_amount': 3200,
-            'end_date': '2023-12-15',
-            'description': '为大学生提供安全、便捷的二手物品交易服务，促进资源循环利用'
-        },
-        {
-            'id': 3,
-            'title': '大学生心理健康助手',
-            'image': 'project3.jpg',
-            'target_amount': 8000,
-            'current_amount': 2000,
-            'end_date': '2024-01-15',
-            'description': '结合AI技术的心理健康评估与辅导系统，为大学生提供心理支持'
-        },
-    ]
-    
-    return render_template('crowdfunding/index.html', projects=projects)
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['PROJECTS_PER_PAGE']
+    projects = Project.query.filter_by(is_active=True).order_by(Project.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
+    categories = ProjectCategory.query.all()
+    return render_template('crowdfunding/index.html', 
+                          title='众筹项目', 
+                          projects=projects,
+                          categories=categories)
 
-@crowdfunding_bp.route('/<int:project_id>')
+@crowdfunding_bp.route('/project/<int:project_id>')
 def project_detail(project_id):
     """众筹项目详情页面"""
-    # 这里将来需要从数据库获取项目详情
-    # 目前返回一个错误页面
-    return render_template('errors/404.html'), 404
+    project = Project.query.get_or_404(project_id)
+    updates = ProjectUpdate.query.filter_by(project_id=project_id).order_by(ProjectUpdate.created_at.desc()).all()
+    comments = ProjectComment.query.filter_by(project_id=project_id).order_by(ProjectComment.created_at.desc()).all()
+    rewards = ProjectReward.query.filter_by(project_id=project_id).all()
+    return render_template('crowdfunding/project_detail.html',
+                          title=project.title,
+                          project=project,
+                          updates=updates,
+                          comments=comments,
+                          rewards=rewards)
 
 @crowdfunding_bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create_project():
     """创建众筹项目页面"""
-    # 需要用户登录才能创建项目
-    # 这里将来需要实现表单验证和数据库操作
-    # 目前返回一个错误页面
-    return render_template('errors/404.html'), 404
+    # 这里需要添加表单处理逻辑
+    return render_template('crowdfunding/create_project.html', title='创建众筹项目')
+
+@crowdfunding_bp.route('/category/<int:category_id>')
+def category_projects(category_id):
+    """按分类查看众筹项目"""
+    category = ProjectCategory.query.get_or_404(category_id)
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['PROJECTS_PER_PAGE']
+    projects = Project.query.filter_by(category_id=category_id, is_active=True).paginate(
+        page=page, per_page=per_page, error_out=False)
+    categories = ProjectCategory.query.all()
+    return render_template('crowdfunding/index.html', 
+                          title=f'{category.name} - 众筹项目',
+                          category=category,
+                          projects=projects,
+                          categories=categories)
+
+@crowdfunding_bp.route('/search')
+def search_projects():
+    """搜索众筹项目"""
+    query = request.args.get('q', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['PROJECTS_PER_PAGE']
+    
+    if not query:
+        return redirect(url_for('crowdfunding.index'))
+    
+    projects = Project.query.filter(
+        Project.title.contains(query) | 
+        Project.description.contains(query)
+    ).filter_by(is_active=True).paginate(
+        page=page, per_page=per_page, error_out=False)
+    
+    return render_template('crowdfunding/search_results.html',
+                          title=f'搜索结果: {query}',
+                          query=query,
+                          projects=projects)
 
 @crowdfunding_bp.route('/donate/<int:project_id>', methods=['POST'])
 @login_required

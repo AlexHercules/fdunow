@@ -1,7 +1,5 @@
-from .routes import auth
+"""认证模块初始化"""
 
-__all__ = ['auth']
+from .routes import auth_bp
 
-"""
-认证模块初始化
-""" 
+__all__ = ['auth_bp'] 

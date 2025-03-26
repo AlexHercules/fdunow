@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{ title }}{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">支持项目</h2>
+                </div>
+                <div class="card-body">
+                    <!-- 项目信息 -->
+                    <div class="project-info mb-4">
+                        <h3>{{ project.title }}</h3>
+                        <p class="text-muted">{{ project.description[:200] }}...</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ (project.current_amount / project.target_amount * 100)|round }}%"
+                                 aria-valuenow="{{ project.current_amount }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ project.target_amount }}">
+                                {{ (project.current_amount / project.target_amount * 100)|round }}%
+                            </div>
+                        </div>
+                        <p class="mb-0">
+                            已筹集：¥{{ project.current_amount }} / 目标：¥{{ project.target_amount }}
+                        </p>
+                    </div>
+                    
+                    <!-- 奖励信息 -->
+                    <div class="reward-info mb-4">
+                        <h4>选择奖励</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ reward.name }}</h5>
+                                <p class="card-text">{{ reward.description }}</p>
+                                <p class="card-text">
+                                    <strong>金额：</strong>¥{{ reward.amount }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 支付表单 -->
+                    <form method="POST" class="payment-form">
+                        {{ form.csrf_token }}
+                        
+                        <div class="form-group">
+                            <label for="amount">支付金额</label>
+                            <input type="number" class="form-control" id="amount" name="amount" 
+                                   value="{{ reward.amount }}" min="{{ reward.amount }}" required>
+                            <small class="form-text text-muted">
+                                支付金额不能低于奖励金额
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>选择支付方式</label>
+                            <div class="payment-methods">
+                                <div class="custom-control custom-radio mb-2">
+                                    <input type="radio" id="wechat" name="payment_method" 
+                                           value="wechat" class="custom-control-input" required>
+                                    <label class="custom-control-label" for="wechat">
+                                        <i class="fab fa-weixin"></i> 微信支付
+                                    </label>
+                                </div>
+                                <div class="custom-control custom-radio mb-2">
+                                    <input type="radio" id="alipay" name="payment_method" 
+                                           value="alipay" class="custom-control-input">
+                                    <label class="custom-control-label" for="alipay">
+                                        <i class="fab fa-alipay"></i> 支付宝
+                                    </label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="campus_card" name="payment_method" 
+                                           value="campus_card" class="custom-control-input">
+                                    <label class="custom-control-label" for="campus_card">
+                                        <i class="fas fa-id-card"></i> 校园卡
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">留言（可选）</label>
+                            <textarea class="form-control" id="message" name="message" 
+                                      rows="3" placeholder="给项目团队的一句话"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" 
+                                       id="anonymous" name="anonymous">
+                                <label class="custom-control-label" for="anonymous">
+                                    匿名支持
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h5>支付说明</h5>
+                            <ul class="mb-0">
+                                <li>支付完成后，您可以在"我的支付记录"中查看支付状态</li>
+                                <li>如果支付遇到问题，请联系客服</li>
+                                <li>所有支付信息都经过加密处理，确保安全</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                                确认支付
+                            </button>
+                            <a href="{{ url_for('crowdfunding.project_detail', project_id=project.id) }}" 
+                               class="btn btn-secondary btn-lg btn-block mt-2">
+                                返回项目
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,14 +1,13 @@
-from flask import render_template, Blueprint, current_app
-from app.extensions import db
-
-main_bp = Blueprint('main', __name__, template_folder='templates/main')
+from flask import render_template, current_app
+from app.main import main_bp
 
 @main_bp.route('/')
+@main_bp.route('/index')
 def index():
-    """首页路由"""
-    return render_template('main/index.html')
+    """主页视图"""
+    return render_template('main/index.html', title='首页')
 
 @main_bp.route('/about')
 def about():
-    """关于我们页面路由"""
-    return render_template('main/about.html') 
+    """关于我们页面"""
+    return render_template('main/about.html', title='关于我们') 

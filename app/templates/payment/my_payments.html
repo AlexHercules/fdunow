@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{ title }}{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">我的支付记录</h2>
+                </div>
+                <div class="card-body">
+                    <!-- 筛选器 -->
+                    <div class="filters mb-4">
+                        <form method="GET" class="form-inline">
+                            <div class="form-group mr-3">
+                                <label for="status" class="mr-2">支付状态</label>
+                                <select class="form-control" id="status" name="status">
+                                    <option value="">全部</option>
+                                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>
+                                        待支付
+                                    </option>
+                                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>
+                                        已完成
+                                    </option>
+                                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>
+                                        已取消
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group mr-3">
+                                <label for="start_date" class="mr-2">开始日期</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date"
+                                       value="{{ request.args.get('start_date') }}">
+                            </div>
+                            <div class="form-group mr-3">
+                                <label for="end_date" class="mr-2">结束日期</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date"
+                                       value="{{ request.args.get('end_date') }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> 筛选
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- 支付记录表格 -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>项目</th>
+                                    <th>金额</th>
+                                    <th>支付方式</th>
+                                    <th>状态</th>
+                                    <th>时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments.items %}
+                                <tr>
+                                    <td>{{ payment.order_number }}</td>
+                                    <td>
+                                        <a href="{{ url_for('crowdfunding.project_detail', project_id=payment.project_id) }}">
+                                            {{ payment.project.title }}
+                                        </a>
+                                    </td>
+                                    <td>¥{{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.payment_method == 'wechat' %}
+                                            <i class="fab fa-weixin"></i> 微信支付
+                                        {% elif payment.payment_method == 'alipay' %}
+                                            <i class="fab fa-alipay"></i> 支付宝
+                                        {% else %}
+                                            <i class="fas fa-id-card"></i> 校园卡
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ payment.status_color }}">
+                                            {{ payment.status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ payment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('payment.confirm', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> 查看
+                                        </a>
+                                        {% if payment.status == 'pending' %}
+                                        <button class="btn btn-sm btn-danger" 
+                                                onclick="cancelPayment('{{ payment.id }}')">
+                                            <i class="fas fa-times"></i> 取消
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">暂无支付记录</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if payments.pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if payments.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('payment.my_payments', page=payments.prev_num, **request.args) }}">
+                                    上一页
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page in payments.iter_pages() %}
+                                {% if page %}
+                                    <li class="page-item {% if page == payments.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('payment.my_payments', page=page, **request.args) }}">
+                                            {{ page }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if payments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('payment.my_payments', page=payments.next_num, **request.args) }}">
+                                    下一页
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 取消支付确认模态框 -->
+<div class="modal fade" id="cancelPaymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认取消支付</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>确定要取消这笔支付吗？此操作不可恢复。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">确认取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+let currentPaymentId = null;
+
+function cancelPayment(paymentId) {
+    currentPaymentId = paymentId;
+    $('#cancelPaymentModal').modal('show');
+}
+
+$('#confirmCancel').click(function() {
+    if (!currentPaymentId) return;
+    
+    // 发送取消支付请求
+    fetch(`/payment/cancel/${currentPaymentId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message || '取消支付失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('取消支付失败，请稍后重试');
+    });
+    
+    $('#cancelPaymentModal').modal('hide');
+});
+</script>
+{% endblock %} 

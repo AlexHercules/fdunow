@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}支付统计{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">支付统计</h1>
+    
+    <!-- 时间范围筛选 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">开始日期</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">结束日期</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">查询</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 支付总额 -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">支付总额</h5>
+                    <h2 class="text-primary">¥{{ "%.2f"|format(total_amount) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 支付方式统计 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">支付方式统计</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>支付方式</th>
+                                    <th>笔数</th>
+                                    <th>金额</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for method in payment_methods %}
+                                <tr>
+                                    <td>
+                                        {% if method.payment_method == 'wechat' %}
+                                        <i class="fab fa-weixin text-success"></i> 微信支付
+                                        {% elif method.payment_method == 'alipay' %}
+                                        <i class="fab fa-alipay text-primary"></i> 支付宝
+                                        {% else %}
+                                        <i class="fas fa-credit-card text-info"></i> 校园卡
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ method.count }}</td>
+                                    <td>¥{{ "%.2f"|format(method.amount) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 支付状态统计 -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">支付状态统计</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>状态</th>
+                                    <th>笔数</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for status in payment_status %}
+                                <tr>
+                                    <td>
+                                        {% if status.status == 'completed' %}
+                                        <span class="badge bg-success">已完成</span>
+                                        {% elif status.status == 'pending' %}
+                                        <span class="badge bg-warning">待支付</span>
+                                        {% elif status.status == 'failed' %}
+                                        <span class="badge bg-danger">失败</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ status.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ status.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 每日支付统计 -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">每日支付统计</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>笔数</th>
+                            <th>金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in daily_payments %}
+                        <tr>
+                            <td>{{ payment.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ payment.count }}</td>
+                            <td>¥{{ "%.2f"|format(payment.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置日期范围的最大值为今天
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').max = today;
+    document.getElementById('end_date').max = today;
+    
+    // 确保结束日期不小于开始日期
+    document.getElementById('start_date').addEventListener('change', function() {
+        document.getElementById('end_date').min = this.value;
+    });
+    
+    document.getElementById('end_date').addEventListener('change', function() {
+        document.getElementById('start_date').max = this.value;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -40,5 +40,8 @@ def init_extensions(app):
     # 加载用户回调
     @login_manager.user_loader
     def load_user(user_id):
-        from app.models import User
+        from app.models.user import User
         return User.query.get(int(user_id))
+
+# 导出所有扩展实例
+__all__ = ['db', 'migrate', 'login_manager', 'csrf', 'mail', 'moment', 'socketio', 'ckeditor', 'init_extensions']
